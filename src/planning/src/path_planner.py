@@ -7,7 +7,7 @@ Author: Valmik Prabhu
 import sys
 import rospy
 import moveit_commander
-from moveit_msgs.msg import OrientationConstraint, Constraints, CollisionObject
+from moveit_msgs.msg import OrientationConstraint, Constraints, CollisionObject, PositionConstraint
 from geometry_msgs.msg import PoseStamped
 from shape_msgs.msg import SolidPrimitive
 
@@ -91,6 +91,29 @@ class PathPlanner(object):
 
         constraints = Constraints()
         constraints.orientation_constraints = orientation_constraints
+        
+        pcm = moveit_msgs.msg.PositionConstraint()
+        constraints.position_constraints = pcm
+        pcm.header.frame_id = self.TODO # ref_link
+        pcm.link_name = self.TODO # ee_link
+
+        cbox = shape_msgs.msg.SolidPrimitive()
+        cbox.type = shape_msgs.msg.SolidPrimitive.BOX
+        cbox.dimensions = [0.1, 0.4, 0.4] # TODO: possibly change
+        pcm.constraint_region.primitives.append(cbox)
+
+        current_pose = self._group.get_current_pose()
+
+        cbox_pose = geometry_msgs.msg.Pose()
+        cbox_pose.position.x = current_pose.pose.position.x
+        cbox_pose.position.y = 0.15
+        cbox_pose.position.z = 0.45
+        cbox_pose.orientation.w = 1.0
+        pcm.constraint_region.primitive_poses.append(cbox_pose)
+
+        # display the constraints in rviz
+        self.display_box(cbox_pose, cbox.dimensions)
+
         self._group.set_path_constraints(constraints)
 
         plan = self._group.plan()

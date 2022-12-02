@@ -7,8 +7,8 @@ Author: Valmik Prabhu
 import sys
 import rospy
 import moveit_commander
-from moveit_msgs.msg import OrientationConstraint, Constraints, CollisionObject
-from geometry_msgs.msg import PoseStamped
+from moveit_msgs.msg import OrientationConstraint, Constraints, CollisionObject, PositionConstraint
+from geometry_msgs.msg import PoseStamped, Pose
 from shape_msgs.msg import SolidPrimitive
 
 class PathPlanner(object):
@@ -62,6 +62,9 @@ class PathPlanner(object):
         # Set the bounds of the workspace
         self._group.set_workspace([-2, -2, -2, 2, 2, 2])
 
+        self.ref_link = self._group.get_pose_reference_frame()
+        self.ee_link = self._group.get_end_effector_link()
+
         # Sleep for a bit to ensure that all inititialization has finished
         rospy.sleep(0.5)
 
@@ -91,6 +94,30 @@ class PathPlanner(object):
 
         constraints = Constraints()
         constraints.orientation_constraints = orientation_constraints
+        self._group.set_path_constraints(constraints)
+
+        pcm = PositionConstraint()
+        constraints.position_constraints.append(pcm)
+        pcm.header.frame_id = self.ref_link
+        pcm.link_name = self.ee_link
+
+        cbox = SolidPrimitive()
+        cbox.type = SolidPrimitive.BOX
+        cbox.dimensions = [0.1, 0.4, 0.4] # TODO: possibly change
+        pcm.constraint_region.primitives.append(cbox)
+
+        current_pose = self._group.get_current_pose()
+
+        cbox_pose = Pose()
+        cbox_pose.position.x = current_pose.pose.position.x
+        cbox_pose.position.y = 0.15
+        cbox_pose.position.z = 0.45
+        cbox_pose.orientation.w = 1.0
+        pcm.constraint_region.primitive_poses.append(cbox_pose)
+
+        # display the constraints in rviz
+        # self.display_box(cbox_pose, cbox.dimensions)
+
         self._group.set_path_constraints(constraints)
 
         plan = self._group.plan()

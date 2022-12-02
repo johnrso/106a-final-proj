@@ -1,0 +1,8 @@
+<launch>
+  <arg name="robot_namespace" default="crl_rzr"/>
+
+  <node pkg="simulation_to_real" type="sim2real.py" name="sim2real" output="screen" ns="$(arg robot_namespace)" respawn="false">
+    <rosparam file="$(find simulation_to_real)/config/sim2real.yaml" subst_value="true"/>
+    <remap from="~images" to="multisense_front/aux/image_rect_color"/>
+  </node>
+</launch>

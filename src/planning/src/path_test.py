@@ -9,8 +9,9 @@ import rospy
 import numpy as np
 import traceback
 
-from moveit_msgs.msg import OrientationConstraint
-from geometry_msgs.msg import PoseStamped
+from moveit_msgs.msg import OrientationConstraint, PositionConstraint
+from geometry_msgs.msg import PoseStamped, Pose
+from shape_msgs.msg import SolidPrimitive
 
 from path_planner import PathPlanner
 
@@ -58,58 +59,58 @@ def main():
 
     while not rospy.is_shutdown():
 
-        while not rospy.is_shutdown():
-            try:
-                x, y, z = 0.8, 0.05, 0.07
-                goal_1 = PoseStamped()
-                goal_1.header.frame_id = "base"
+        # while not rospy.is_shutdown():
+        #     try:
+        #         x, y, z = 0.8, 0.05, 0.07
+        #         goal_1 = PoseStamped()
+        #         goal_1.header.frame_id = "base"
 
-                #x, y, and z position
-                goal_1.pose.position.x = x
-                goal_1.pose.position.y = y
-                goal_1.pose.position.z = z
+        #         #x, y, and z position
+        #         goal_1.pose.position.x = x
+        #         goal_1.pose.position.y = y
+        #         goal_1.pose.position.z = z
 
-                #Orientation as a quaternion
-                goal_1.pose.orientation.x = 0.0
-                goal_1.pose.orientation.y = -1.0
-                goal_1.pose.orientation.z = 0.0
-                goal_1.pose.orientation.w = 0.0
+        #         #Orientation as a quaternion
+        #         goal_1.pose.orientation.x = 0.0
+        #         goal_1.pose.orientation.y = -1.0
+        #         goal_1.pose.orientation.z = 0.0
+        #         goal_1.pose.orientation.w = 0.0
 
-                # Might have to edit this . . . 
-                plan = planner.plan_to_pose(goal_1, [])
-                input("Press <Enter> to move the right arm to goal pose 1: ")
-                if not planner.execute_plan(plan[1]): 
-                    raise Exception("Execution failed")
-            except Exception as e:
-                print(e)
-                traceback.print_exc()
-            else:
-                break
+        #         # Might have to edit this . . . 
+        #         plan = planner.plan_to_pose(goal_1, [])
+        #         input("Press <Enter> to move the right arm to goal pose 1: ")
+        #         if not planner.execute_plan(plan[1]): 
+        #             raise Exception("Execution failed")
+        #     except Exception as e:
+        #         print(e)
+        #         traceback.print_exc()
+        #     else:
+        #         break
 
-        while not rospy.is_shutdown():
-            try:
-                goal_2 = PoseStamped()
-                goal_2.header.frame_id = "base"
+        # while not rospy.is_shutdown():
+        #     try:
+        #         goal_2 = PoseStamped()
+        #         goal_2.header.frame_id = "base"
 
-                #x, y, and z position
-                goal_2.pose.position.x = 0.6
-                goal_2.pose.position.y = -0.3
-                goal_2.pose.position.z = 0.0
+        #         #x, y, and z position
+        #         goal_2.pose.position.x = 0.6
+        #         goal_2.pose.position.y = -0.3
+        #         goal_2.pose.position.z = 0.0
 
-                #Orientation as a quaternion
-                goal_2.pose.orientation.x = 0.0
-                goal_2.pose.orientation.y = -1.0
-                goal_2.pose.orientation.z = 0.0
-                goal_2.pose.orientation.w = 0.0
+        #         #Orientation as a quaternion
+        #         goal_2.pose.orientation.x = 0.0
+        #         goal_2.pose.orientation.y = -1.0
+        #         goal_2.pose.orientation.z = 0.0
+        #         goal_2.pose.orientation.w = 0.0
 
-                plan = planner.plan_to_pose(goal_2, [])
-                input("Press <Enter> to move the right arm to goal pose 2: ")
-                if not planner.execute_plan(plan[1]):
-                    raise Exception("Execution failed")
-            except Exception as e:
-                print(e)
-            else:
-                break
+        #         plan = planner.plan_to_pose(goal_2, [])
+        #         input("Press <Enter> to move the right arm to goal pose 2: ")
+        #         if not planner.execute_plan(plan[1]):
+        #             raise Exception("Execution failed")
+        #     except Exception as e:
+        #         print(e)
+        #     else:
+        #         break
 
         while not rospy.is_shutdown():
             try:
@@ -127,7 +128,28 @@ def main():
                 goal_3.pose.orientation.z = 0.0
                 goal_3.pose.orientation.w = 0.0
 
-                plan = planner.plan_to_pose(goal_3, [])
+                pcm = PositionConstraint()
+                pcm.header.frame_id = planner.ref_link
+                pcm.link_name = planner.ee_link
+
+                cbox = SolidPrimitive()
+                cbox.type = SolidPrimitive.BOX
+                cbox.dimensions = [0.1, 0.4, 0.4] # TODO: possibly change
+                pcm.constraint_region.primitives.append(cbox)
+
+                current_pose = planner._group.get_current_pose()
+
+                cbox_pose = Pose()
+                cbox_pose.position.x = current_pose.pose.position.x
+                cbox_pose.position.y = 0.15
+                cbox_pose.position.z = 0.45
+                cbox_pose.orientation.w = 1.0
+                pcm.constraint_region.primitive_poses.append(cbox_pose)
+
+                # display the constraints in rviz
+                # self.display_box(cbox_pose, cbox.dimensions)
+
+                plan = planner.plan_to_pose(goal_3, [], [pcm])
                 input("Press <Enter> to move the right arm to goal pose 3: ")
                 if not planner.execute_plan(plan[1]):
                     raise Exception("Execution failed")

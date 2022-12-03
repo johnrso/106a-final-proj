@@ -7,8 +7,11 @@ def talker():
     # Create an instance of the rospy.Publisher object which we can  use to
     # publish messages to a topic. This publisher publishes messages of type
     # std_msgs/String to the topic /chatter_talk
-    pub = rospy.Publisher('pos_samples', PoseStamped, queue_size=100)
-    
+    pub_paths = rospy.get_param("~publishers")
+    sub_paths = rospy.get_param("~subscribers")
+
+    pub = rospy.Publisher(sub_paths["ball_pose"], PoseStamped, queue_size=100)
+
     # Create a timer object that will sleep long enough to result in a 10Hz
     # publishing rate
     r = rospy.Rate(10) # 10hz
@@ -22,7 +25,7 @@ def talker():
         pub.publish(pub)
         print(rospy.get_name() + ": I sent \"%s\"" % pos)
         r.sleep()
-            
+
 if __name__ == '__main__':
 
     # Run this program as a new node in the ROS computation graph called /talker.

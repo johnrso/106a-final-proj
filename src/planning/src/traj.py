@@ -24,15 +24,16 @@ def xy_intercept(v):
     t_int = 2*v[2]/9.8
     return fit_xy(t_int, v[0]), fit_xy(t_int, v[1])
 
-# getting intercepts
-pos_samples = ... # (n, 3) xyz samples yuhhh
-a_xy = 0
-a_z = -9.8
-delta_t = 1/30 # camera frequency
-n = pos_samples.shape[0]
+if __name__ == "__main__":
+    # getting intercepts
+    pos_samples = ... # (n, 3) xyz samples yuhhh
+    a_xy = 0
+    a_z = -9.8
+    delta_t = 1/30 # camera frequency
+    n = pos_samples.shape[0]
 
-t = np.linspace(0, n*delta_t, n)
-v_fit = fit_pos(t, pos_samples)
+    t = np.linspace(0, n*delta_t, n)
+    v_fit = fit_pos(t, pos_samples)
 
-# intercepts
-x, y = xy_intercept(v_fit)
+    # intercepts
+    x, y = xy_intercept(v_fit)

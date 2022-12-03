@@ -1,5 +1,5 @@
 planning_group: "right_arm"
-dt: 1/30
+dt: 0.0333333333
 subscribers:
     ball_pose: "~ball_pose"
 publishers:

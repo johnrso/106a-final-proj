@@ -54,58 +54,61 @@ class PathPlannerNode(object):
     def plan(self):
         rospy.loginfo_once("path_planner: beginning planning server")
         while True:
-            try:
-                buf_np = np.array(self.buffer)
-                n, _ = buf_np.shape
-                if buf_np.shape[0] > 1:
-                    continue
+            if len(self.buffer) < 1:
+                rospy.sleep(self.dt)
+                continue
+            rospy.loginfo_once("path_planner: begin fitting")
+            buf_np = np.array(self.buffer)
+            n, _ = buf_np.shape
 
-                # fit a parabola to the buffer
+            rospy.loginfo_throttle(20, "path_planner: num messages --> {n}")
 
-                t = np.linspace(0, n*self.dt, n)
-                v_fit = fit_pos(t, buf_np)
+            # fit a parabola to the buffer
 
-                # intercepts
-                x, y = xy_intercept(v_fit)
+            t = np.linspace(0, n*self.dt, n)
+            v_fit = fit_pos(t, buf_np)
 
-                rospy.loginfo_once("path_planner: curve fit, beginning to plan")
-                current_pose = self.planner._group.get_current_pose()
+            # intercepts
+            x, y = xy_intercept(v_fit)
 
-                goal = PoseStamped()
-                goal.header.frame_id = self.planner.ref_link
+            rospy.loginfo_once("path_planner: curve fit, beginning to plan")
+            current_pose = self.planner._group.get_current_pose()
 
-                #x, y, and z position
-                goal.pose.position.x = x
-                goal.pose.position.y = y
-                goal.pose.position.z = self.current_pose.pose.position.z
+            goal = PoseStamped()
+            goal.header.frame_id = self.planner.ref_link
 
-                #Orientation as a quaternion
-                goal.pose.orientation.x = 0.0
-                goal.pose.orientation.y = -1.0
-                goal.pose.orientation.z = 0.0
-                goal.pose.orientation.w = 0.0
+            #x, y, and z position
+            goal.pose.position.x = x
+            goal.pose.position.y = y
+            goal.pose.position.z = self.current_pose.pose.position.z
 
-                pcm = PositionConstraint()
-                pcm.header.frame_id = self.planner.ref_link
-                pcm.link_name = self.planner.ee_link
+            #Orientation as a quaternion
+            goal.pose.orientation.x = 0.0
+            goal.pose.orientation.y = -1.0
+            goal.pose.orientation.z = 0.0
+            goal.pose.orientation.w = 0.0
 
-                cbox = SolidPrimitive()
-                cbox.type = SolidPrimitive.BOX
-                cbox.dimensions = [0.1, 0.4, 0.4] # TODO: possibly change
-                pcm.constraint_region.primitives.append(cbox)
+            pcm = PositionConstraint()
+            pcm.header.frame_id = self.planner.ref_link
+            pcm.link_name = self.planner.ee_link
 
-                cbox_pose = Pose()
-                cbox_pose.position.x = current_pose.pose.position.x
-                cbox_pose.position.y = 0.15
-                cbox_pose.position.z = 0.45
-                cbox_pose.orientation.w = 1.0
-                pcm.constraint_region.primitive_poses.append(cbox_pose)
+            cbox = SolidPrimitive()
+            cbox.type = SolidPrimitive.BOX
+            cbox.dimensions = [0.1, 0.4, 0.4] # TODO: possibly change
+            pcm.constraint_region.primitives.append(cbox)
 
-                plan = self.planner.plan_to_pose(goal, [], [pcm])
-                # if not self.planner.execute_plan(plan[1]):
-                #     raise Exception("Execution failed")
-            except Exception as e:
-                print(e)
+            cbox_pose = Pose()
+            cbox_pose.position.x = current_pose.pose.position.x
+            cbox_pose.position.y = 0.15
+            cbox_pose.position.z = 0.45
+            cbox_pose.orientation.w = 1.0
+            pcm.constraint_region.primitive_poses.append(cbox_pose)
+
+            plan = self.planner.plan_to_pose(goal, [], [pcm])
+            # if not self.planner.execute_plan(plan[1]):
+            #     raise Exception("Execution failed")
+            # except Exception as e:
+            #    print(e)
 if __name__ == "__main__":
     try:
         PathPlannerNode()

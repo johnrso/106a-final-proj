@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import rospy
 from geometry_msgs.msg import PoseStamped, Pose
 import numpy as np
@@ -10,6 +12,7 @@ def talker():
     pub_paths = rospy.get_param("~publishers")
     sub_paths = rospy.get_param("~subscribers")
 
+    print(sub_paths["ball_pose"])
     pub = rospy.Publisher(sub_paths["ball_pose"], PoseStamped, queue_size=100)
 
     # Create a timer object that will sleep long enough to result in a 10Hz
@@ -22,14 +25,13 @@ def talker():
         pos.pose.position.x = x
         pos.pose.position.y = y
         pos.pose.position.z = z
-        pub.publish(pub)
-        print(rospy.get_name() + ": I sent \"%s\"" % pos)
+        pub.publish(pos)
         r.sleep()
 
 if __name__ == '__main__':
 
     # Run this program as a new node in the ROS computation graph called /talker.
-    rospy.init_node('talker', anonymous=True)
+    rospy.init_node('dummy_pos', anonymous=True)
 
     # Check if the node has received a signal to shut down. If not, run the
     # talker method.

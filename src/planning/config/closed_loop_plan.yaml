@@ -1,0 +1,7 @@
+planning_group: "right_arm"
+dt: 1/30
+subscribers:
+    ball_pose: "~ball_pose"
+publishers:
+    seg_map: "~seg_map"
+    crop_map: "~crop_map"

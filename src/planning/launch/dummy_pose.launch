@@ -1,0 +1,5 @@
+<launch>
+  <node pkg="planning" type="dummy_pos.py" name="sim2real" output="screen" respawn="false">
+    <rosparam file="$(find planning)/config/closed_loop_plan.yaml" subst_value="true"/>
+  </node>
+</launch>

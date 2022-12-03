@@ -1,0 +1,6 @@
+test: True
+subscribers:
+    images: "~images"
+publishers:
+    seg_map: "~seg_map"
+    crop_map: "~crop_map"

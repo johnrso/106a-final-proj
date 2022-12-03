@@ -12,6 +12,7 @@ import traceback
 from moveit_msgs.msg import OrientationConstraint, PositionConstraint
 from geometry_msgs.msg import PoseStamped, Pose
 from shape_msgs.msg import SolidPrimitive
+from visualization_msgs.msg import Marker, MarkerArray
 
 from path_planner import PathPlanner
 
@@ -27,8 +28,9 @@ def main():
 
     # Make sure that you've looked at and understand path_planner.py before starting
 
-    planner = PathPlanner("right_arm")
+    marker_pub = rospy.Publisher("/path_test", MarkerArray, queue_size = 2)
 
+    planner = PathPlanner("right_arm")
 
     Kp = 0.2 * np.array([0.4, 2, 1.7, 1.5, 2, 2, 3])
     Kd = 0.01 * np.array([2, 1, 2, 0.5, 0.8, 0.8, 0.8])
@@ -129,12 +131,13 @@ def main():
                 goal_3.pose.orientation.w = 0.0
 
                 pcm = PositionConstraint()
-                pcm.header.frame_id = planner.ref_link
+                pcm.header.frame_id = "reference/right_gripper_tip"#planner.ref_link
                 pcm.link_name = planner.ee_link
 
                 cbox = SolidPrimitive()
                 cbox.type = SolidPrimitive.BOX
-                cbox.dimensions = [0.1, 0.4, 0.4] # TODO: possibly change
+                cbox.dimensions = [1,1,1]
+                # cbox.dimensions = [0.1, 0.4, 0.4] # TODO: possibly change
                 pcm.constraint_region.primitives.append(cbox)
 
                 current_pose = planner._group.get_current_pose()
@@ -148,15 +151,55 @@ def main():
 
                 # display the constraints in rviz
                 # self.display_box(cbox_pose, cbox.dimensions)
+                marker_array_msg = MarkerArray()
+                position_constraint_marker = create_marker("positionconstraint", cbox_pose, cbox.dimensions, [0,1,0])
+                goal_marker = create_marker("goal", goal_3.pose, [0.1,0.1,0.1], [1,0,0], "base", 2)
+                marker_array_msg.markers.append(position_constraint_marker)
+                marker_array_msg.markers.append(goal_marker)
+                marker_pub.publish(marker_array_msg)
 
                 plan = planner.plan_to_pose(goal_3, [], [pcm])
                 input("Press <Enter> to move the right arm to goal pose 3: ")
                 if not planner.execute_plan(plan[1]):
                     raise Exception("Execution failed")
             except Exception as e:
-                print(e)
+                print("EXCEPTION")
+                # print(e)
             else:
                 break
+
+def create_marker(ns, cbox_pose, dimensions, colors, frame_id="reference/right_hand", type=1):
+    marker = Marker()
+
+    marker.header.frame_id = frame_id
+    marker.header.stamp = rospy.Time.now()
+
+    # set shape, Arrow: 0; Cube: 1 ; Sphere: 2 ; Cylinder: 3
+    marker.type = type
+    marker.id = 0
+
+    # Set the scale of the marker
+    marker.scale.x = dimensions[0]
+    marker.scale.y = dimensions[1]
+    marker.scale.z = dimensions[2]
+
+    # Set the color
+    marker.color.r = colors[0]
+    marker.color.g = colors[1]
+    marker.color.b = colors[2]
+    marker.color.a = 1.0
+
+    # Set the pose of the marker
+    marker.pose.position.x = cbox_pose.position.x
+    marker.pose.position.y = cbox_pose.position.y
+    marker.pose.position.z = cbox_pose.position.z
+    marker.pose.orientation.x = 0.0
+    marker.pose.orientation.y = 0.0
+    marker.pose.orientation.z = 0.0
+    marker.pose.orientation.w = 1.0
+
+    marker.ns = str(ns)
+    return marker
 
 if __name__ == '__main__':
     rospy.init_node('moveit_node')

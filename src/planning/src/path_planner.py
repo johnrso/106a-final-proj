@@ -77,13 +77,14 @@ class PathPlanner(object):
         self._group = None
         rospy.loginfo("Stopping Path Planner")
 
-    def plan_to_pose(self, target, orientation_constraints):
+    def plan_to_pose(self, target, orientation_constraints, position_constraints=[]): 
         """
         Generates a plan given an end effector pose subject to orientation constraints
 
         Inputs:
         target: A geometry_msgs/PoseStamped message containing the end effector pose goal
         orientation_constraints: A list of moveit_msgs/OrientationConstraint messages
+        position_constraints: A list of moveit_msgs/PositionConstraint messages. 
 
         Outputs:
         path: A moveit_msgs/RobotTrajectory path
@@ -94,29 +95,8 @@ class PathPlanner(object):
 
         constraints = Constraints()
         constraints.orientation_constraints = orientation_constraints
-        self._group.set_path_constraints(constraints)
-
-        pcm = PositionConstraint()
-        constraints.position_constraints.append(pcm)
-        pcm.header.frame_id = self.ref_link
-        pcm.link_name = self.ee_link
-
-        cbox = SolidPrimitive()
-        cbox.type = SolidPrimitive.BOX
-        cbox.dimensions = [0.1, 0.4, 0.4] # TODO: possibly change
-        pcm.constraint_region.primitives.append(cbox)
-
-        current_pose = self._group.get_current_pose()
-
-        cbox_pose = Pose()
-        cbox_pose.position.x = current_pose.pose.position.x
-        cbox_pose.position.y = 0.15
-        cbox_pose.position.z = 0.45
-        cbox_pose.orientation.w = 1.0
-        pcm.constraint_region.primitive_poses.append(cbox_pose)
-
-        # display the constraints in rviz
-        # self.display_box(cbox_pose, cbox.dimensions)
+        constraints.position_constraints = position_constraints
+        print(constraints.position_constraints)
 
         self._group.set_path_constraints(constraints)
 

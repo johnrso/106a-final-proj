@@ -48,7 +48,8 @@ class PathPlannerNode(object):
         rospy.loginfo_once("path_planner: received first pos message")
 
         # extract position from msg and append it to buffer
-        self.buffer.append(np.array(msg.pose.position))
+        pos = msg.pose.position
+        self.buffer.append([pos.x, pos.y, pos.z])
         # TODO: check which frame this is in
 
     def plan(self):
@@ -80,7 +81,7 @@ class PathPlannerNode(object):
             #x, y, and z position
             goal.pose.position.x = x
             goal.pose.position.y = y
-            goal.pose.position.z = self.current_pose.pose.position.z
+            goal.pose.position.z = current_pose.pose.position.z
 
             #Orientation as a quaternion
             goal.pose.orientation.x = 0.0

@@ -2,6 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
+pos_samples = ... # (n, 3) xyz samples yuhhh
+a_xy = 0
+a_z = -9.8
+delta_t = 1/30 # camera frequency
+
 def fit_xy(t, v):
     return v*t+(a_xy/2)*(t**2)
 
@@ -26,10 +31,6 @@ def xy_intercept(v):
 
 if __name__ == "__main__":
     # getting intercepts
-    pos_samples = ... # (n, 3) xyz samples yuhhh
-    a_xy = 0
-    a_z = -9.8
-    delta_t = 1/30 # camera frequency
     n = pos_samples.shape[0]
 
     t = np.linspace(0, n*delta_t, n)

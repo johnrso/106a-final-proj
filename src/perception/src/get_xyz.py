@@ -52,7 +52,7 @@ class DepthFinder:
         self.color_upper = color_upper
         self.color_lower = color_lower
 
-    def detect_from_color(self, img: np.ndarray, depth: np.ndarray, fx=609.799499511719, fy=609.5458984375, use_depth = True) -> Union[float, float, float]:
+    def detect_from_color(self, img: np.ndarray, depth: np.ndarray, use_depth = True) -> Union[float, float, float]:
         """
         [h, w, 3] img
         [h, w] or [h, w, 1] depth... can be ignored with use_depth=False

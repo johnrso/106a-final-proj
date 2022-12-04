@@ -29,6 +29,22 @@ from typing import Union
 
 class DepthFinder:
     def __init__(self, fx, fy, fov_x, fov_y, h, w, ball_diam_meters, radius_min_size, color_upper, color_lower):
+        """
+
+        fx: Pixel focal length used to convert from world coords to image coords... as in X = x * fx / Z
+        fy: Pixel focal length
+        fov_x: field of view in the x direction
+        fov_y: field of view in the y direction
+        h: height of images in pixels
+        w: width of images in pixels
+        ball_diam_meters: diameter of the ball
+        radius_min_size: threshold for us to count the image patch as a found ball... in meters
+        color_upper: Tuple of color in rgb
+        color_lower: Tuple of color in rgb
+            Any pixel value with r, g, and b values in between color_upper and color_lower will be considered
+            as potentially being part of the ball
+
+        """
         self.fx = fx
         self.fy = fy
         self.fov_x = fov_x
@@ -39,6 +55,7 @@ class DepthFinder:
         self.radius_min_size = radius_min_size
         self.color_upper = color_upper
         self.color_lower = color_lower
+        self.weights = weights
 
     def detect_from_color(self, img: np.ndarray, depth: np.ndarray, fx=609.799499511719, fy=609.5458984375, use_depth = True) -> Union[float, float, float]:
         """
@@ -88,7 +105,7 @@ class DepthFinder:
                 if use_depth:
                   circle_mask = np.zeros(depth.shape)
                   circle_mask = cv2.circle(circle_mask, (pix_x, pix_y), pixel_radius, 1, -1)
-                  z_depth = np.mean(np.partition(depth[circle_mask > 0], 10)[:10]) # Take the mean of 10 smallest depths for robustness
+                  z_depth = np.mean(np.partition(depth[circle_mask > 0], 10)[:10]) + (self.ball_diam_meters / 2) # Take the mean of 10 smallest depths for robustness
                   Z = (Z + z_depth) / 2 # Average the 2 predictions
                 X = (pix_x - (self.w / 2)) * Z / self.fx
                 Y = (pix_y - (self.h / 2)) * Z / self.fy

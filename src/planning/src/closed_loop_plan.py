@@ -18,7 +18,7 @@ from geometry_msgs.msg import PoseStamped, Pose
 from shape_msgs.msg import SolidPrimitive
 
 from path_planner import PathPlanner
-from traj import fit_pos, xy_intercept
+from traj import fit_pos, xy_intercept, detect_bounce
 
 class PathPlannerNode(object):
     def __init__(self):
@@ -55,6 +55,9 @@ class PathPlannerNode(object):
     def plan(self):
         rospy.loginfo_once("path_planner: beginning planning server")
         while True:
+            # truncate buffer id bounce detected
+            if detect_bounce(self.buffer):
+                self.buffer = self.buffer[-1:]
             if len(self.buffer) < 1:
                 rospy.sleep(self.dt)
                 continue

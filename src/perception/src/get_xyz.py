@@ -55,7 +55,6 @@ class DepthFinder:
         self.radius_min_size = radius_min_size
         self.color_upper = color_upper
         self.color_lower = color_lower
-        self.weights = weights
 
     def detect_from_color(self, img: np.ndarray, depth: np.ndarray, fx=609.799499511719, fy=609.5458984375, use_depth = True) -> Union[float, float, float]:
         """

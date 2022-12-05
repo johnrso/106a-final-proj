@@ -1,9 +1,7 @@
 <launch>
-  <arg name="robot_namespace" default="crl_rzr"/>
-
   <node pkg="perception" type="depth_finder.py" name="depth_finder" output="screen" respawn="false">
     <rosparam file="$(find perception)/config/segmentation.yaml" subst_value="true"/>
-    <remap from="~images" to="/camera/color/image_rect_raw"/>
+    <remap from="~images" to="/camera/color/image_raw"/>
     <remap from="~pose" to="/planning/pose"/>
   </node>
 </launch>

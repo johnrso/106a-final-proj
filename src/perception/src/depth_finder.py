@@ -9,6 +9,7 @@ import get_xyz
 import rospy
 from rospy.numpy_msg import numpy_msg
 from sensor_msgs.msg import Image
+from geometry_msgs.msg import PoseStamped
 import numpy as np
 import ros_numpy
 
@@ -23,11 +24,11 @@ class DepthFinderNode(object):
         self.fy = rospy.get_param("~camera/fy")
         self.img_h, self.img_w = rospy.get_param("~camera/dims")
 
-        self.ball_dia = rospy.get_param("~/segmentation/dia")
-        self.radius_min_size = rospy.get_param("~/segmentation/radius_min_size")
+        self.ball_dia = rospy.get_param("~segmentation/dia")
+        self.radius_min_size = rospy.get_param("~segmentation/radius_min_size")
 
-        self.color_lower = rospy.get_param("~/segmentation/lower_bound")
-        self.color_upper = rospy.get_param("~/segmentation/upper_bound")
+        self.color_lower = tuple(rospy.get_param("~segmentation/lower_bound"))
+        self.color_upper = tuple(rospy.get_param("~segmentation/upper_bound"))
 
         self.depth_finder =get_xyz.DepthFinder(self.fx, self.fy, self.img_h, self.img_w, self.ball_dia, self.radius_min_size, self.color_upper, self.color_lower)
         self.pose_pub = rospy.Publisher(self.pose_pub_path, PoseStamped, queue_size=10)
@@ -37,6 +38,7 @@ class DepthFinderNode(object):
         rospy.spin()
 
     def get_xyz(self, msg):
+        rospy.loginfo_once("depth_finder: msg received")
         img_mat = ros_numpy.numpify(msg)
         x, y, z, stat = self.depth_finder.detect_from_color(img_mat, None, use_depth=False)
         if stat:
@@ -46,11 +48,13 @@ class DepthFinderNode(object):
             pos.pose.position.z = z
             self.pose_pub.publish(pos)
 
+            rospy.loginfo(f"depth_finder: ({x}, {y}, {z})")
+
 
 
 
 if __name__ == "__main__":
     try:
-        Sim2RealNode()
+        DepthFinderNode()
     except rospy.ROSInterruptException:
         pass

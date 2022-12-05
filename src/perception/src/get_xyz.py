@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 from typing import Union
-
+import imutils
 
 """
  Intrinsic of "Color" / 640x480 / {YUYV/RGB8/BGR8/RGBA8/BGRA8/Y16}
@@ -61,16 +61,17 @@ class DepthFinder:
         """
 
         assert img.shape == (self.h, self.w, 3)
-        assert img.shape[:2] == depth.shape[:2]
         if use_depth and len(depth.shape) == 3:
           depth = depth.reshape(depth.shape[:2])
+          assert img.shape[:2] == depth.shape[:2]
+
 
         blurred = cv2.GaussianBlur(img, (11, 11), 0)
 
         # construct a mask for the color "green", then perform
         # a series of dilations and erosions to remove any small
         # blobs left in the mask
-        mask = cv2.inRange(blurred, colorLower, colorUpper)
+        mask = cv2.inRange(blurred, self.color_lower, self.color_upper)
         mask = cv2.erode(mask, None, iterations=2)
         mask = cv2.dilate(mask, None, iterations=2)
 
@@ -91,12 +92,12 @@ class DepthFinder:
             center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
             # only proceed if the radius meets a minimum size
-            if pixel_radius > RADIUS_MIN_SIZE:
+            if pixel_radius > self.radius_min_size:
                 # pixel_diameter = pixel_radius * 2
                 # degrees_per_pixel_x = FOV_X / IMG_W
                 # sin_theta = np.sin(np.deg2rad(pixel_radius * degrees_per_pixel_x))
                 # print(pixel_radius * degrees_per_pixel_x)
-                Z = FX * BALL_DIAM_METERS / (pixel_radius * 2)# (BALL_DIAM_METERS / 2) / sin_theta
+                Z = self.fx * self.ball_diam_meters / (pixel_radius * 2)# (BALL_DIAM_METERS / 2) / sin_theta
                 if use_depth:
                   circle_mask = np.zeros(depth.shape)
                   circle_mask = cv2.circle(circle_mask, (pix_x, pix_y), pixel_radius, 1, -1)

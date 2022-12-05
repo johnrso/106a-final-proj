@@ -28,13 +28,11 @@ from typing import Union
 # colorUpper = (256, 100, 100)
 
 class DepthFinder:
-    def __init__(self, fx, fy, fov_x, fov_y, h, w, ball_diam_meters, radius_min_size, color_upper, color_lower):
+    def __init__(self, fx, fy, h, w, ball_diam_meters, radius_min_size, color_upper, color_lower):
         """
 
         fx: Pixel focal length used to convert from world coords to image coords... as in X = x * fx / Z
         fy: Pixel focal length
-        fov_x: field of view in the x direction
-        fov_y: field of view in the y direction
         h: height of images in pixels
         w: width of images in pixels
         ball_diam_meters: diameter of the ball
@@ -47,17 +45,14 @@ class DepthFinder:
         """
         self.fx = fx
         self.fy = fy
-        self.fov_x = fov_x
-        self.fov_y = fov_y
         self.h = h
         self.w = w
         self.ball_diam_meters = ball_diam_meters
         self.radius_min_size = radius_min_size
         self.color_upper = color_upper
         self.color_lower = color_lower
-        self.weights = weights
 
-    def detect_from_color(self, img: np.ndarray, depth: np.ndarray, fx=609.799499511719, fy=609.5458984375, use_depth = True) -> Union[float, float, float]:
+    def detect_from_color(self, img: np.ndarray, depth: np.ndarray, use_depth = True) -> Union[float, float, float]:
         """
         [h, w, 3] img
         [h, w] or [h, w, 1] depth... can be ignored with use_depth=False

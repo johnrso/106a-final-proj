@@ -25,6 +25,12 @@ def fit_pos(t, pos_samples):
     paramz, covz = curve_fit(fit_z, t, z_samples)
     return np.concatenate((paramx, paramy, paramz))
 
+def detect_bounce(pos_samples):
+    if len(pos_samples) >= 3:
+        one, two, three = pos_samples[-3:]
+        return (one[2]-two[2]) > 0 and three[2] > two[2]
+    return False
+
 def xy_intercept(v):
     t_int = 2*v[2]/9.8
     return fit_xy(t_int, v[0]), fit_xy(t_int, v[1])

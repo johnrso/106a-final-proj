@@ -1,6 +1,13 @@
-test: True
+camera:
+    fx: 609.799499511719
+    fy: 609.5458984375
+    dims: (480, 640)
+segmentation:
+    dia: .08
+    radius_min_size: .01
+    lower_bound: (200, 0, 0)
+    upper_bound: (256, 100, 100)
 subscribers:
     images: "~images"
 publishers:
-    seg_map: "~seg_map"
-    crop_map: "~crop_map"
+    pose: "~pose"

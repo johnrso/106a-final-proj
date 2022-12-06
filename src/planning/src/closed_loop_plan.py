@@ -35,7 +35,7 @@ class PathPlannerNode(object):
         sub_paths = rospy.get_param("~subscribers")
 
         self.planner = PathPlanner(self.planning_group)
-        self.pose_sub = rospy.Subscriber(sub_paths["ball_pose"], PoseStamped, self.add_to_buffer)
+        self.pose_sub = rospy.Subscriber(sub_paths["pose"], PoseStamped, self.add_to_buffer)
 
         thread = threading.Thread(target=self.plan, args=())
         thread.daemon = True  # Daemonize thread

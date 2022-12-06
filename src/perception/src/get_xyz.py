@@ -98,14 +98,18 @@ class DepthFinder:
                 # sin_theta = np.sin(np.deg2rad(pixel_radius * degrees_per_pixel_x))
                 # print(pixel_radius * degrees_per_pixel_x)
                 Z = self.fx * self.ball_diam_meters / (pixel_radius * 2)# (BALL_DIAM_METERS / 2) / sin_theta
+                circle_mask = np.zeros(img.shape[:2])
+                circle_mask = cv2.circle(circle_mask, (int(pix_x), int(pix_y)), int(pixel_radius), 1, -1)
                 if use_depth:
-                  circle_mask = np.zeros(depth.shape)
-                  circle_mask = cv2.circle(circle_mask, (pix_x, pix_y), pixel_radius, 1, -1)
-                  z_depth = np.mean(np.partition(depth[circle_mask > 0], 10)[:10]) + (self.ball_diam_meters / 2) # Take the mean of 10 smallest depths for robustness
+                  partitioned = np.partition(depth[circle_mask.squeeze() > 0].squeeze(), 10)
+                  z_depth = np.mean(partitioned[:10]) + (self.ball_diam_meters / 2) # Take the mean of 10 smallest depths for robustness
+                  print(f"classical: {Z}, realsense {z_depth}")
                   Z = (Z + z_depth) / 2 # Average the 2 predictions
                 X = (pix_x - (self.w / 2)) * Z / self.fx
                 Y = (pix_y - (self.h / 2)) * Z / self.fy
 
-                return X, Y, Z, True
+                if len(circle_mask.shape) == 2:
+                  circle_mask = np.stack([circle_mask] * 3, axis = -1)
+                return X, Y, Z, True, circle_mask.astype(np.uint8) * 255
 
-        return 0, 0, 0, False
+        return 0, 0, 0, False, None

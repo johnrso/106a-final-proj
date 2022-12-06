@@ -1,0 +1,6 @@
+<launch>
+  <include file="$(find planning)/launch/closed_loop_plan.launch"/>
+  <include file="$(find perception)/launch/segmentation.launch"/>
+  <include file="$(find realsense2_camera)/launch/rs_camera.launch"/>
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find planning)/rviz/config.rviz" />
+</launch>

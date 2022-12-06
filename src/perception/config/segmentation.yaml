@@ -3,11 +3,13 @@ camera:
     fy: 609.5458984375
     dims: [480, 640]
 segmentation:
-    dia: .08
+    dia: .05715
     radius_min_size: .01
-    lower_bound: [200, 60, 110]
+    lower_bound: [150, 60, 80]
     upper_bound: [256, 100, 170]
 subscribers:
-    images: "~images"
+    rgb: "~rgb"
+    depth: "~depth"
 publishers:
     pose: "~pose"
+    mask: "~mask"

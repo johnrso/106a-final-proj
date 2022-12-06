@@ -79,7 +79,7 @@ class DepthFinderNode(object):
             mask_msg = ros_numpy.msgify(Image, mask, "rgb8")
             self.mask_pub.publish(mask_msg)
 
-            rospy.loginfo(f"depth_finder: {(trans_pose_msg.pose.position.x, trans_pose_msg.pose.position.y, trans_pose_msg.pose.position.z)}")
+            rospy.loginfo_throttle(10, f"depth_finder: {(trans_pose_msg.pose.position.x, trans_pose_msg.pose.position.y, trans_pose_msg.pose.position.z)}")
 
 
 

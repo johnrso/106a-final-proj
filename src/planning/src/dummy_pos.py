@@ -12,8 +12,8 @@ def talker():
     pub_paths = rospy.get_param("~publishers")
     sub_paths = rospy.get_param("~subscribers")
 
-    print(sub_paths["ball_pose"])
-    pub = rospy.Publisher(sub_paths["ball_pose"], PoseStamped, queue_size=100)
+    print(sub_paths["pose"])
+    pub = rospy.Publisher(sub_paths["pose"], PoseStamped, queue_size=100)
 
     # Create a timer object that will sleep long enough to result in a 10Hz
     # publishing rate

@@ -31,15 +31,15 @@ class PathPlannerNode(object):
         self.planning_group = rospy.get_param("~planning_group", "right_arm")
         self.dt = rospy.get_param("~dt", 1/30)
 
-        pub_paths = rospy.get_param("~publishers")
+        # pub_paths = rospy.get_param("~publishers")
         sub_paths = rospy.get_param("~subscribers")
 
-        self.planner = PathPlanner(self.planning_group)
-        self.pose_sub = rospy.Subscriber(sub_paths["pose"], PoseArray, self.add_to_buffer)
+        # self.planner = PathPlanner(self.planning_group)
+        self.pose_sub = rospy.Subscriber(sub_paths["pose"], PoseStamped, self.add_to_buffer)
 
         # plotting topic
-        self.plot = rospy.Publisher("~traj_plot", PoseArray, 100)
-        self.num_plot_samples = 10
+        self.plot = rospy.Publisher("~traj_plot", PoseArray, 1)
+        self.num_plot_samples = 1000
 
         thread = threading.Thread(target=self.plan, args=())
         thread.daemon = True  # Daemonize thread
@@ -54,14 +54,16 @@ class PathPlannerNode(object):
         # extract position from msg and append it to buffer
         pos = msg.pose.position
         self.buffer.append([pos.x, pos.y, pos.z])
+        if len(self.buffer) > 20:
+            self.buffer.pop(0)
         # TODO: check which frame this is in
 
     def plan(self):
         rospy.loginfo_once("path_planner: beginning planning server")
         while True:
             # truncate buffer id bounce detected
-            if detect_bounce(self.buffer):
-                self.buffer = self.buffer[-1:]
+            # if detect_bounce(self.buffer):
+            #     self.buffer = self.buffer[-1:]
             if len(self.buffer) < 1:
                 rospy.sleep(self.dt)
                 continue
@@ -69,7 +71,7 @@ class PathPlannerNode(object):
             buf_np = np.array(self.buffer)
             n, _ = buf_np.shape
 
-            rospy.loginfo_throttle(20, "path_planner: num messages --> {n}")
+            rospy.loginfo_throttle(1, f"path_planner: num messages --> {n}")
 
             # fit a parabola to the buffer
 
@@ -81,49 +83,56 @@ class PathPlannerNode(object):
 
             # sample 10 posestamped from estimated traj, publish to rviz plot topic
             sample_array = PoseArray()
+            sample_array.header.frame_id = "base"
+            sample_array.header.stamp = rospy.Time.now()
             for i in range(self.num_plot_samples):
-                sample = PoseStamped()
+                sample = Pose()
                 x_sample, y_sample, z_sample = sample_from_traj(v_fit)
-                sample.pose.position.x = x_sample
-                sample.pose_position.y = y_sample
-                sample.pose_position.z = z_sample
+                sample.position.x = x_sample
+                sample.position.y = y_sample
+                sample.position.z = z_sample
+                sample.orientation.x = 0
+                sample.orientation.y = 0
+                sample.orientation.z = 0
+                sample.orientation.w = 1
+
                 sample_array.poses.append(sample)
             self.plot.publish(sample_array)
 
             rospy.loginfo_once("path_planner: curve fit, beginning to plan")
-            current_pose = self.planner._group.get_current_pose()
+            # # current_pose = self.planner._group.get_current_pose()
 
-            goal = PoseStamped()
-            goal.header.frame_id = self.planner.ref_link
+            # goal = PoseStamped()
+            # goal.header.frame_id = self.planner.ref_link
 
-            #x, y, and z position
-            goal.pose.position.x = x
-            goal.pose.position.y = y
-            goal.pose.position.z = current_pose.pose.position.z
+            # #x, y, and z position
+            # goal.pose.position.x = x
+            # goal.pose.position.y = y
+            # goal.pose.position.z = current_pose.pose.position.z
 
-            #Orientation as a quaternion
-            goal.pose.orientation.x = 0.0
-            goal.pose.orientation.y = -1.0
-            goal.pose.orientation.z = 0.0
-            goal.pose.orientation.w = 0.0
+            # #Orientation as a quaternion
+            # goal.pose.orientation.x = 0.0
+            # goal.pose.orientation.y = -1.0
+            # goal.pose.orientation.z = 0.0
+            # goal.pose.orientation.w = 0.0
 
-            pcm = PositionConstraint()
-            pcm.header.frame_id = self.planner.ref_link
-            pcm.link_name = self.planner.ee_link
+            # pcm = PositionConstraint()
+            # # pcm.header.frame_id = self.planner.ref_link
+            # # pcm.link_name = self.planner.ee_link
 
-            cbox = SolidPrimitive()
-            cbox.type = SolidPrimitive.BOX
-            cbox.dimensions = [0.1, 0.4, 0.4] # TODO: possibly change
-            pcm.constraint_region.primitives.append(cbox)
+            # cbox = SolidPrimitive()
+            # cbox.type = SolidPrimitive.BOX
+            # cbox.dimensions = [0.1, 0.4, 0.4] # TODO: possibly change
+            # pcm.constraint_region.primitives.append(cbox)
 
-            cbox_pose = Pose()
-            cbox_pose.position.x = current_pose.pose.position.x
-            cbox_pose.position.y = 0.15
-            cbox_pose.position.z = 0.45
-            cbox_pose.orientation.w = 1.0
-            pcm.constraint_region.primitive_poses.append(cbox_pose)
+            # cbox_pose = Pose()
+            # cbox_pose.position.x = current_pose.pose.position.x
+            # cbox_pose.position.y = 0.15
+            # cbox_pose.position.z = 0.45
+            # cbox_pose.orientation.w = 1.0
+            # pcm.constraint_region.primitive_poses.append(cbox_pose)
 
-            plan = self.planner.plan_to_pose(goal, [], [pcm])
+            # plan = self.planner.plan_to_pose(goal, [], [pcm])
             # if not self.planner.execute_plan(plan[1]):
             #     raise Exception("Execution failed")
             # except Exception as e:

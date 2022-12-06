@@ -9,6 +9,7 @@ Panels:
         - /Image2
         - /TF1
         - /TF1/Frames1
+        - /PoseArray1
       Splitter Ratio: 0.7425600290298462
     Tree Height: 156
   - Class: rviz/Help
@@ -568,6 +569,23 @@ Visualization Manager:
               {}
       Update Interval: 0
       Value: true
+    - Alpha: 1
+      Arrow Length: 0.30000001192092896
+      Axes Length: 0.30000001192092896
+      Axes Radius: 0.009999999776482582
+      Class: rviz/PoseArray
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.07000000029802322
+      Head Radius: 0.029999999329447746
+      Name: PoseArray
+      Queue Size: 10
+      Shaft Length: 0.009999999776482582
+      Shaft Radius: 0.009999999776482582
+      Shape: Arrow (3D)
+      Topic: /closed_loop_plan/traj_plot
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -622,5 +640,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1828
-  X: 87
+  X: 85
   Y: 28

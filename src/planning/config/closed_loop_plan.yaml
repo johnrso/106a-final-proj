@@ -1,4 +1,4 @@
 planning_group: "right_arm"
 dt: 0.0333333333
 subscribers:
-    pose: "~ball_pose"
+    pose: "~pose"

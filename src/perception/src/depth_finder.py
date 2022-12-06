@@ -13,6 +13,8 @@ import numpy as np
 import ros_numpy
 import message_filters
 
+import tf2_ros
+import tf2_geometry_msgs
 from geometry_msgs.msg import PoseStamped
 
 class DepthFinderNode(object):
@@ -34,6 +36,10 @@ class DepthFinderNode(object):
         self.color_lower = tuple(rospy.get_param("~segmentation/lower_bound"))
         self.color_upper = tuple(rospy.get_param("~segmentation/upper_bound"))
 
+        self.tf_buffer = tf2_ros.Buffer(rospy.Duration(100.0))  # tf buffer length
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
+        self.pose_transform = None
+
         self.depth_finder = get_xyz.DepthFinder(self.fx, self.fy, self.img_h, self.img_w, self.ball_dia, self.radius_min_size, self.color_upper, self.color_lower)
         self.pose_pub = rospy.Publisher(self.pose_pub_path, PoseStamped, queue_size=10)
         self.mask_pub = rospy.Publisher(self.mask_pub_path, Image, queue_size=10)
@@ -54,11 +60,21 @@ class DepthFinderNode(object):
         depth_mat = ros_numpy.numpify(depth_msg)
         x, y, z, stat, mask = self.depth_finder.detect_from_color(rgb_mat, None, use_depth=False)
         if stat:
-            pos = PoseStamped()
-            pos.pose.position.x = x
-            pos.pose.position.y = y
-            pos.pose.position.z = z
-            self.pose_pub.publish(pos)
+            pose_msg = PoseStamped()
+            pose_msg.pose.position.x = x
+            pose_msg.pose.position.y = y
+            pose_msg.pose.position.z = z
+
+            if self.pose_transform is None:
+                self.pose_transform = self.tf_buffer.lookup_transform(
+                    "base",
+                    "rs_camera",
+                    rospy.time(0),
+                    rospy.Duration(1.0),
+                )
+
+            trans_pose_msg = tf2_geometry_msgs.do_transform_pose(pose_msg, self.pose_transform)
+            self.pose_pub.publish(trans_pose_msg)
 
             mask_msg = ros_numpy.msgify(Image, mask, "rgb8")
             self.mask_pub.publish(mask_msg)

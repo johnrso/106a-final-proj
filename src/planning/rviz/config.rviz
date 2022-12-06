@@ -468,7 +468,19 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        ar_marker_17:
+          Value: true
         base:
+          Value: true
+        camera_color_frame:
+          Value: false
+        camera_color_optical_frame:
+          Value: false
+        camera_depth_frame:
+          Value: false
+        camera_depth_optical_frame:
+          Value: false
+        camera_link:
           Value: true
         reference/base:
           Value: false
@@ -536,8 +548,6 @@ Visualization Manager:
           Value: false
         reference/torso:
           Value: false
-        rs_camera:
-          Value: true
         world:
           Value: false
       Marker Alpha: 1
@@ -547,53 +557,14 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        world:
-          base:
-            rs_camera:
-              {}
-          reference/base:
-            reference/controller_box:
-              {}
-            reference/pedestal:
-              {}
-            reference/pedestal_feet:
-              {}
-            reference/right_arm_base_link:
-              reference/right_l0:
-                reference/head:
-                  reference/head_camera:
-                    {}
-                  reference/screen:
-                    {}
-                reference/right_l1:
-                  reference/right_l1_2:
-                    {}
-                  reference/right_l2:
-                    reference/right_l2_2:
-                      {}
-                    reference/right_l3:
-                      reference/right_l4:
-                        reference/right_arm_itb:
-                          {}
-                        reference/right_l4_2:
-                          {}
-                        reference/right_l5:
-                          reference/right_hand_camera:
-                            {}
-                          reference/right_l6:
-                            reference/right_hand:
-                              reference/right_gripper_base:
-                                reference/right_connector_plate_base:
-                                  reference/right_connector_plate_mount:
-                                    reference/right_electric_gripper_base:
-                                      {}
-                                reference/right_gripper_tip:
-                                  {}
-                          reference/right_wrist:
-                            {}
-                reference/right_torso_itb:
+        camera_link:
+          camera_color_frame:
+            camera_color_optical_frame:
+              ar_marker_17:
+                base:
                   {}
-            reference/torso:
+          camera_depth_frame:
+            camera_depth_optical_frame:
               {}
       Update Interval: 0
       Value: true
@@ -651,5 +622,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1828
-  X: 88
+  X: 87
   Y: 28

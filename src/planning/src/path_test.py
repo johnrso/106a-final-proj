@@ -9,7 +9,7 @@ import rospy
 import numpy as np
 import traceback
 
-from moveit_msgs.msg import OrientationConstraint, PositionConstraint
+from moveit_msgs.msg import OrientationConstraint, PositionConstraint, JointConstraint
 from geometry_msgs.msg import PoseStamped, Pose
 from shape_msgs.msg import SolidPrimitive
 from visualization_msgs.msg import Marker, MarkerArray
@@ -149,7 +149,7 @@ def main():
                 cbox = SolidPrimitive()
                 cbox.type = SolidPrimitive.BOX
                 # cbox.dimensions = [1,1,1]
-                cbox.dimensions = [10, 10, 0.1]
+                cbox.dimensions = [1, 1, 0.1]
                 # cbox.dimensions = [1.5,1.5,1.5]
                 # cbox.dimensions = [0.01, 0.01, 0.01]
                 # cbox.dimensions = [0.6, 0.4, 0.6] # TODO: possibly change
@@ -167,6 +167,23 @@ def main():
                 # cbox_pose
                 pcm.constraint_region.primitive_poses.append(cbox_pose)
 
+                joint_constraint = JointConstraint() 
+                joint_constraint.tolerance_above = 0.1 
+                joint_constraint.tolerance_below = 3.14 / 2
+                joint_constraint.weight = 1
+                joint_constraint.joint_name = "torso_t0"
+
+                orientation_constraint = OrientationConstraint()
+                orientation_constraint.link_name = planner.ee_link 
+                orientation_constraint.orientation.x = 0.0
+                orientation_constraint.orientation.y = -1.0
+                orientation_constraint.orientation.z = 0.0
+                orientation_constraint.orientation.w = 0.0
+                orientation_constraint.absolute_x_axis_tolerance = 10 
+                orientation_constraint.absolute_x_axis_tolerance = 10
+                orientation_constraint.absolute_x_axis_tolerance = 10
+
+
                 # display the constraints in rviz
                 # self.display_box(cbox_pose, cbox.dimensions)
                 marker_array_msg = MarkerArray()
@@ -178,7 +195,7 @@ def main():
                 # print(marker)
                 marker_pub.publish(marker_array_msg)
 
-                plan = planner.plan_to_pose(goal_3, [], [pcm])
+                plan = planner.plan_to_pose(goal_3, [orientation_constraint], [pcm], [joint_constraint])
                 input("Press <Enter> to move the right arm to goal pose 3: ")
                 if not planner.execute_plan(plan[1]):
                     raise Exception("Execution failed")

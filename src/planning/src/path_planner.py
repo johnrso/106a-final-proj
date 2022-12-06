@@ -77,7 +77,7 @@ class PathPlanner(object):
         self._group = None
         rospy.loginfo("Stopping Path Planner")
 
-    def plan_to_pose(self, target, orientation_constraints, position_constraints=[]): 
+    def plan_to_pose(self, target, orientation_constraints, position_constraints=[], joint_constraints=[]): 
         """
         Generates a plan given an end effector pose subject to orientation constraints
 
@@ -97,6 +97,7 @@ class PathPlanner(object):
         constraints.orientation_constraints = orientation_constraints
         constraints.position_constraints = position_constraints
         # print(constraints.position_constraints)
+        constraints.joint_constraints = joint_constraints
 
         self._group.set_path_constraints(constraints)
 

@@ -68,8 +68,8 @@ class DepthFinderNode(object):
             if self.pose_transform is None:
                 self.pose_transform = self.tf_buffer.lookup_transform(
                     "base",
-                    "rs_camera",
-                    rospy.time(0),
+                    "camera_link",
+                    rospy.Time(0),
                     rospy.Duration(1.0),
                 )
 
@@ -79,7 +79,7 @@ class DepthFinderNode(object):
             mask_msg = ros_numpy.msgify(Image, mask, "rgb8")
             self.mask_pub.publish(mask_msg)
 
-            rospy.loginfo(f"depth_finder: {(x, y, z)}")
+            rospy.loginfo(f"depth_finder: {(trans_pose_msg.pose.position.x, trans_pose_msg.pose.position.y, trans_pose_msg.pose.position.z)}")
 
 
 

@@ -110,6 +110,8 @@ class DepthFinder:
 
                 if len(circle_mask.shape) == 2:
                   circle_mask = np.stack([circle_mask] * 3, axis = -1)
-                return X, Y, Z, True, circle_mask.astype(np.uint8) * 255
+
+                # Camera frame has depth = x, left of image is y, up in image is z
+                return Z, -X, Y, True, circle_mask.astype(np.uint8) * 255
 
         return 0, 0, 0, False, None

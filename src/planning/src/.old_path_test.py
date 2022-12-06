@@ -13,7 +13,6 @@ from moveit_msgs.msg import OrientationConstraint, PositionConstraint
 from geometry_msgs.msg import PoseStamped, Pose
 from shape_msgs.msg import SolidPrimitive
 from visualization_msgs.msg import Marker, MarkerArray
-import std_msgs
 
 from path_planner import PathPlanner
 
@@ -21,9 +20,7 @@ try:
     from controller import Controller
 except ImportError:
     pass
-
-COLOR_TRANSLUCENT = std_msgs.msg.ColorRGBA(0.0, 0.0, 0.0, 0.5)
-
+    
 def main():
     """
     Main Script
@@ -98,8 +95,8 @@ def main():
         #         goal_2.header.frame_id = "base"
 
         #         #x, y, and z position
-        #         goal_2.pose.position.x = 0.8
-        #         goal_2.pose.position.y = 0.3
+        #         goal_2.pose.position.x = 0.6
+        #         goal_2.pose.position.y = -0.3
         #         goal_2.pose.position.z = 0.0
 
         #         #Orientation as a quaternion
@@ -119,20 +116,13 @@ def main():
 
         while not rospy.is_shutdown():
             try:
-            # if True:
                 goal_3 = PoseStamped()
                 goal_3.header.frame_id = "base"
 
-
-                current_pose = planner._group.get_current_pose()
-
                 #x, y, and z position
                 goal_3.pose.position.x = 0.6
-                goal_3.pose.position.y = -0.2
-                goal_3.pose.position.z = 0.0
-                # goal_3.pose.position.x = current_pose.pose.position.x
-                # goal_3.pose.position.y = current_pose.pose.position.y
-                # goal_3.pose.position.z = current_pose.pose.position.z
+                goal_3.pose.position.y = -0.1
+                goal_3.pose.position.z = 0.1
 
                 #Orientation as a quaternion
                 goal_3.pose.orientation.x = 0.0
@@ -140,42 +130,32 @@ def main():
                 goal_3.pose.orientation.z = 0.0
                 goal_3.pose.orientation.w = 0.0
 
-
                 pcm = PositionConstraint()
-                pcm.header.frame_id = planner.ref_link # planner.ref_link
-                # pcm.header.frame_id = "reference/right_gripper_tip" #planner.ref_link
+                pcm.header.frame_id = "reference/right_gripper_tip"#planner.ref_link
                 pcm.link_name = planner.ee_link
 
                 cbox = SolidPrimitive()
                 cbox.type = SolidPrimitive.BOX
-                # cbox.dimensions = [1,1,1]
-                cbox.dimensions = [10, 10, 0.1]
-                # cbox.dimensions = [1.5,1.5,1.5]
-                # cbox.dimensions = [0.01, 0.01, 0.01]
-                # cbox.dimensions = [0.6, 0.4, 0.6] # TODO: possibly change
+                cbox.dimensions = [1,1,1]
+                # cbox.dimensions = [0.1, 0.4, 0.4] # TODO: possibly change
                 pcm.constraint_region.primitives.append(cbox)
-                
+
+                current_pose = planner._group.get_current_pose()
+
                 cbox_pose = Pose()
-                cbox_pose.position.x = 0.8
-                cbox_pose.position.y = 0.3
-                cbox_pose.position.z = 0.0
-                # cbox_pose.position.y = 0 
-                # cbox_pose.position.z = 0
+                cbox_pose.position.x = current_pose.pose.position.x
+                cbox_pose.position.y = 0.15
+                cbox_pose.position.z = 0.45
                 cbox_pose.orientation.w = 1.0
-                # transform = tf_buffer.lookup_transform(planner.ee_link, 
-                #                 pcm.header.frame_id, pcm.heade)
-                # cbox_pose
                 pcm.constraint_region.primitive_poses.append(cbox_pose)
 
                 # display the constraints in rviz
                 # self.display_box(cbox_pose, cbox.dimensions)
                 marker_array_msg = MarkerArray()
-                position_constraint_marker = display_box(cbox_pose, cbox.dimensions, pcm.header.frame_id)
-                # position_constraint_marker = create_marker("positionconstraint", cbox_pose, cbox.dimensions, [0,1,0])
-                goal_marker = create_marker("goal", goal_3.pose, [0.1,0.1,0.1], [1,0,0], goal_3.header.frame_id, 2)
+                position_constraint_marker = create_marker("positionconstraint", cbox_pose, cbox.dimensions, [0,1,0])
+                goal_marker = create_marker("goal", goal_3.pose, [0.1,0.1,0.1], [1,0,0], "base", 2)
                 marker_array_msg.markers.append(position_constraint_marker)
                 marker_array_msg.markers.append(goal_marker)
-                # print(marker)
                 marker_pub.publish(marker_array_msg)
 
                 plan = planner.plan_to_pose(goal_3, [], [pcm])
@@ -183,7 +163,8 @@ def main():
                 if not planner.execute_plan(plan[1]):
                     raise Exception("Execution failed")
             except Exception as e:
-                print(e)
+                print("EXCEPTION")
+                # print(e)
             else:
                 break
 
@@ -219,28 +200,6 @@ def create_marker(ns, cbox_pose, dimensions, colors, frame_id="reference/right_h
 
     marker.ns = str(ns)
     return marker
-
-def display_box(pose, dimensions, ref_link):
-    """Utility function to visualize position constraints."""
-    assert len(dimensions) == 3
-
-    # setup cube / box marker type
-    marker = Marker()
-    marker.header.stamp = rospy.Time.now()
-    marker.ns = "positionconstraint"
-    marker.id = 1
-    marker.type = Marker.CUBE
-    marker.action = Marker.ADD
-    marker.color = COLOR_TRANSLUCENT
-    marker.header.frame_id = ref_link
-
-    # fill in user input
-    marker.pose = pose
-    marker.scale.x = dimensions[0]
-    marker.scale.y = dimensions[1]
-    marker.scale.z = dimensions[2]
-    return marker
-
 
 if __name__ == '__main__':
     rospy.init_node('moveit_node')

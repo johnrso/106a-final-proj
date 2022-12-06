@@ -15,5 +15,5 @@ rospy.sleep(2.0)
 
 # Close the right gripper
 print('Closing...')
-right_gripper.close()
+right_gripper.open()
 rospy.sleep(1.0)

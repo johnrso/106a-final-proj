@@ -96,7 +96,7 @@ class PathPlanner(object):
         constraints = Constraints()
         constraints.orientation_constraints = orientation_constraints
         constraints.position_constraints = position_constraints
-        print(constraints.position_constraints)
+        # print(constraints.position_constraints)
 
         self._group.set_path_constraints(constraints)
 

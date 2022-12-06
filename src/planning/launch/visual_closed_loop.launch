@@ -1,6 +1,15 @@
 <launch>
+  <arg name="x" default="1.16"/>
+  <arg name="y" default="0"/>
+  <arg name="z" default="0"/>
   <include file="$(find planning)/launch/closed_loop_plan.launch"/>
   <include file="$(find perception)/launch/segmentation.launch"/>
   <include file="$(find realsense2_camera)/launch/rs_camera.launch"/>
-  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find planning)/rviz/config.rviz" />
+  <include file="$(find sawyer_moveit_config)/launch/sawyer_moveit.launch">
+    <arg name="electric_gripper" value="true"/>
+    <arg name="rviz_config" value="$(find planning)/rviz/config.rviz" />
+  </include>
+  <node pkg="intera_interface" name="joint_trajectory_action_server" type="joint_trajectory_action_server.py"/>
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find planning)/rviz/config.rviz"/>
+  <node pkg="tf" type="static_transform_publisher" name="camera_broadcaster" args="$(arg x) $(arg y) $(arg z) 0 0 1 0 base rs_camera 100" />
 </launch>

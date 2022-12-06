@@ -35,6 +35,13 @@ def xy_intercept(v):
     t_int = 2*v[2]/9.8
     return fit_xy(t_int, v[0]), fit_xy(t_int, v[1])
 
+def sample_from_traj(v):
+    t = np.random.uniform()
+    x = fit_xy(t, v[0])
+    y = fit_xy(t, v[1])
+    z = fit_z(t, v[2])
+    return x, y, z
+
 if __name__ == "__main__":
     # getting intercepts
     n = pos_samples.shape[0]

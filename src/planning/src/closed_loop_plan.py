@@ -14,11 +14,11 @@ import ros_numpy
 from intera_interface import Limb
 
 from moveit_msgs.msg import OrientationConstraint, PositionConstraint
-from geometry_msgs.msg import PoseStamped, Pose
+from geometry_msgs.msg import PoseStamped, Pose, PoseArray
 from shape_msgs.msg import SolidPrimitive
 
 from path_planner import PathPlanner
-from traj import fit_pos, xy_intercept, detect_bounce
+from traj import fit_pos, xy_intercept, detect_bounce, sample_from_traj
 
 class PathPlannerNode(object):
     def __init__(self):
@@ -35,7 +35,11 @@ class PathPlannerNode(object):
         sub_paths = rospy.get_param("~subscribers")
 
         self.planner = PathPlanner(self.planning_group)
-        self.pose_sub = rospy.Subscriber(sub_paths["pose"], PoseStamped, self.add_to_buffer)
+        self.pose_sub = rospy.Subscriber(sub_paths["pose"], PoseArray, self.add_to_buffer)
+
+        # plotting topic
+        self.plot = rospy.Publisher("~traj_plot", PoseArray, 100)
+        self.num_plot_samples = 10
 
         thread = threading.Thread(target=self.plan, args=())
         thread.daemon = True  # Daemonize thread
@@ -74,6 +78,17 @@ class PathPlannerNode(object):
 
             # intercepts
             x, y = xy_intercept(v_fit)
+
+            # sample 10 posestamped from estimated traj, publish to rviz plot topic
+            sample_array = PoseArray()
+            for i in range(self.num_plot_samples):
+                sample = PoseStamped()
+                x_sample, y_sample, z_sample = sample_from_traj(v_fit)
+                sample.pose.position.x = x_sample
+                sample.pose_position.y = y_sample
+                sample.pose_position.z = z_sample
+                sample_array.poses.append(sample)
+            self.plot.publish(sample_array)
 
             rospy.loginfo_once("path_planner: curve fit, beginning to plan")
             current_pose = self.planner._group.get_current_pose()

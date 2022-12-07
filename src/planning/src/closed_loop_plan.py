@@ -54,7 +54,7 @@ class PathPlannerNode(object):
         # extract position from msg and append it to buffer
         pos = msg.pose.position
         self.buffer.append([pos.x, pos.y, pos.z])
-        if len(self.buffer) > 20:
+        if len(self.buffer) > 50:
             self.buffer.pop(0)
         # TODO: check which frame this is in
 
@@ -77,6 +77,7 @@ class PathPlannerNode(object):
 
             t = np.linspace(0, n*self.dt, n)
             v_fit = fit_pos(t, buf_np)
+            print(v_fit)
 
             # intercepts
             x, y = xy_intercept(v_fit)
@@ -88,15 +89,26 @@ class PathPlannerNode(object):
             for i in range(self.num_plot_samples):
                 sample = Pose()
                 x_sample, y_sample, z_sample = sample_from_traj(v_fit)
-                sample.position.x = x_sample
-                sample.position.y = y_sample
-                sample.position.z = z_sample
+                sample.position.x = x_sample + buf_np[0][0]
+                sample.position.y = y_sample + buf_np[0][1]
+                sample.position.z = z_sample + buf_np[0][2]
+                sample.orientation.x = 0
+                sample.orientation.y = 0
+                sample.orientation.z = 0
+                sample.orientation.w = 1
+                sample_array.poses.append(sample)
+            for b in buf_np:
+                sample = Pose()
+                sample.position.x = b[0]
+                sample.position.y = b[1]
+                sample.position.z = b[2]
                 sample.orientation.x = 0
                 sample.orientation.y = 0
                 sample.orientation.z = 0
                 sample.orientation.w = 1
 
                 sample_array.poses.append(sample)
+
             self.plot.publish(sample_array)
 
             rospy.loginfo_once("path_planner: curve fit, beginning to plan")

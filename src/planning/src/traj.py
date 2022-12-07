@@ -7,8 +7,8 @@ a_xy = 0
 a_z = -9.8
 delta_t = 1/30 # camera frequency
 
-def fit_xy(t, v):
-    return v*t+(a_xy/2)*(t**2)
+def fit_xy(t, a, b, c):
+    return a*t+b*(t**2)+c
 
 def fit_z(t, v):
     return v*t+(a_z/2)*(t**2)
@@ -22,7 +22,7 @@ def fit_pos(t, pos_samples):
     z_samples = pos_samples[:, 2]
     paramx, covx = curve_fit(fit_xy, t, x_samples)
     paramy, covy = curve_fit(fit_xy, t, y_samples)
-    paramz, covz = curve_fit(fit_z, t, z_samples)
+    paramz, covz = curve_fit(fit_xy, t, z_samples)
     return np.concatenate((paramx, paramy, paramz))
 
 def detect_bounce(pos_samples):
@@ -39,7 +39,7 @@ def sample_from_traj(v):
     t = np.random.uniform()
     x = fit_xy(t, v[0])
     y = fit_xy(t, v[1])
-    z = fit_z(t, v[2])
+    z = fit_zy(t, v[2])
     return x, y, z
 
 if __name__ == "__main__":

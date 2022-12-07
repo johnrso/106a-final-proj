@@ -29,12 +29,13 @@ class PathPlannerNode(object):
         n = 30
         t = np.linspace(0, 1, n)
         t_batch = np.repeat(np.array([t]).T, 3, 1)
+        self.buffer = v_0*t_batch+(a/2)*(t_batch**2) + np.random.normal(scale=0.02, size=(n,3))
         # test garbage data
 
-        self.buffer = v_0*t_batch+(a/2)*(t_batch**2) + np.random.normal(scale=0.02, size=(n,3))
         self.buffer = []
         self.a_xy = 0
         self.a_z = -9.8
+        self.z_int = 0
 
         self.planning_group = rospy.get_param("~planning_group", "right_arm")
         self.dt = rospy.get_param("~dt", 1/30)
@@ -88,7 +89,7 @@ class PathPlannerNode(object):
             v_fit = fit_pos(t, buf_np)
 
             # intercepts
-            x, y = xy_intercept(v_fit)
+            x, y = xy_intercept(v_fit, self.z_int)
 
             # sample 10 posestamped from estimated traj, publish to rviz plot topic
             sample_array = PoseArray()

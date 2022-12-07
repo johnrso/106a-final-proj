@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
-pos_samples = ... # (n, 3) xyz samples yuhhh
+#pos_samples = ... # (n, 3) xyz samples yuhhh
 a_xy = 0
 a_z = -9.8
 delta_t = 1/30 # camera frequency
@@ -11,7 +11,7 @@ def fit(t, a, b, c):
     return a*t+b*(t**2)+c
 
 def fit_z(t, v):
-    return v*t+(a_z/2)*(t**2)
+    return v*t+(a_z/2)*(t**2) + 3
 
 def fit_pos(t, pos_samples):
     """

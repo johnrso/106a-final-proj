@@ -23,7 +23,15 @@ from traj import fit_pos, xy_intercept, detect_bounce, sample_from_traj
 class PathPlannerNode(object):
     def __init__(self):
         rospy.init_node("path_plan", anonymous=True)
+        # test garbage data
+        v_0 = np.array([[1, 1, 4]])
+        a = np.array([0, 0, -9.8])
+        n = 30
+        t = np.linspace(0, 1, n)
+        t_batch = np.repeat(np.array([t]).T, 3, 1)
+        # test garbage data
 
+        self.buffer = v_0*t_batch+(a/2)*(t_batch**2) + np.random.normal(scale=0.02, size=(n,3))
         self.buffer = []
         self.a_xy = 0
         self.a_z = -9.8
@@ -64,6 +72,7 @@ class PathPlannerNode(object):
             # truncate buffer id bounce detected
             # if detect_bounce(self.buffer):
             #     self.buffer = self.buffer[-1:]
+            #print(self.buffer)
             if len(self.buffer) < 1:
                 rospy.sleep(self.dt)
                 continue
@@ -77,7 +86,6 @@ class PathPlannerNode(object):
 
             t = np.linspace(0, n*self.dt, n)
             v_fit = fit_pos(t, buf_np)
-            print(v_fit)
 
             # intercepts
             x, y = xy_intercept(v_fit)
@@ -89,9 +97,9 @@ class PathPlannerNode(object):
             for i in range(self.num_plot_samples):
                 sample = Pose()
                 x_sample, y_sample, z_sample = sample_from_traj(v_fit)
-                sample.position.x = x_sample + buf_np[0][0]
-                sample.position.y = y_sample + buf_np[0][1]
-                sample.position.z = z_sample + buf_np[0][2]
+                sample.position.x = x_sample
+                sample.position.y = y_sample
+                sample.position.z = z_sample + buf_np[0, 2]
                 sample.orientation.x = 0
                 sample.orientation.y = 0
                 sample.orientation.z = 0

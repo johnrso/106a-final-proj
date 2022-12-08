@@ -7,8 +7,8 @@ a_xy = 0
 a_z = -9.8
 delta_t = 1/30 # camera frequency
 
-def fit(t, a, b, c):
-    return a*(t**2)+b*t+c
+def fit(t, a, b):
+    return a*t+b
 
 # def fit_z(t, v):
 #     return v*t+(a_z/2)*(t**2) + 3
@@ -32,13 +32,12 @@ def detect_bounce(pos_samples):
     return False
 
 def xy_intercept(v, z_int):
-    a, b, c = v[2]
-    c -= z_int
-    t_int = np.roots([a, b, c])
+    a, b = v[2]
+    t_int = np.roots([a, b])
     return fit(t_int[0], *v[0]), fit(t_int[0], *v[1])
 
 def sample_from_traj(v):
-    t = np.random.uniform()
+    t = np.random.uniform()*5
     x = fit(t, *v[0])
     y = fit(t, *v[1])
     z = fit(t, *v[2])

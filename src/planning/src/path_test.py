@@ -127,8 +127,8 @@ def main():
                 current_pose = planner._group.get_current_pose()
 
                 #x, y, and z position
-                goal_3.pose.position.x = 0.6
-                goal_3.pose.position.y = -0.2
+                goal_3.pose.position.x = 0.8 # prev 0.6
+                goal_3.pose.position.y = -0.2 #-0.2
                 goal_3.pose.position.z = 0.0
                 # goal_3.pose.position.x = current_pose.pose.position.x
                 # goal_3.pose.position.y = current_pose.pose.position.y
@@ -149,7 +149,7 @@ def main():
                 cbox = SolidPrimitive()
                 cbox.type = SolidPrimitive.BOX
                 # cbox.dimensions = [1,1,1]
-                cbox.dimensions = [1, 1, 0.1]
+                cbox.dimensions = [1.2, 1.2, 0.1]
                 # cbox.dimensions = [1.5,1.5,1.5]
                 # cbox.dimensions = [0.01, 0.01, 0.01]
                 # cbox.dimensions = [0.6, 0.4, 0.6] # TODO: possibly change
@@ -195,7 +195,8 @@ def main():
                 # print(marker)
                 marker_pub.publish(marker_array_msg)
 
-                plan = planner.plan_to_pose(goal_3, [orientation_constraint], [pcm], [joint_constraint])
+                # plan = planner.plan_to_pose(goal_3, [orientation_constraint], [pcm], [joint_constraint])
+                plan = planner.plan_to_pose(goal_3, [], [pcm], [joint_constraint])
                 input("Press <Enter> to move the right arm to goal pose 3: ")
                 if not planner.execute_plan(plan[1]):
                     raise Exception("Execution failed")

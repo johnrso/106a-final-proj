@@ -63,7 +63,7 @@ class PathPlannerNode(object):
         # extract position from msg and append it to buffer
         pos = msg.pose.position
         self.buffer.append([pos.x, pos.y, pos.z])
-        if len(self.buffer) > 50:
+        if len(self.buffer) > 10:
             self.buffer.pop(0)
         # TODO: check which frame this is in
 
@@ -74,7 +74,7 @@ class PathPlannerNode(object):
             # if detect_bounce(self.buffer):
             #     self.buffer = self.buffer[-1:]
             #print(self.buffer)
-            if len(self.buffer) < 1:
+            if len(self.buffer) < 5:
                 rospy.sleep(self.dt)
                 continue
             rospy.loginfo_once("path_planner: begin fitting")
@@ -100,7 +100,7 @@ class PathPlannerNode(object):
                 x_sample, y_sample, z_sample = sample_from_traj(v_fit)
                 sample.position.x = x_sample
                 sample.position.y = y_sample
-                sample.position.z = z_sample + buf_np[0, 2]
+                sample.position.z = z_sample
                 sample.orientation.x = 0
                 sample.orientation.y = 0
                 sample.orientation.z = 0

@@ -43,6 +43,7 @@ class DepthFinderNode(object):
         self.depth_finder = get_xyz.DepthFinder(self.fx, self.fy, self.img_h, self.img_w, self.ball_dia, self.radius_min_size, self.color_upper, self.color_lower)
         self.pose_pub = rospy.Publisher(self.pose_pub_path, PoseStamped, queue_size=10)
         self.mask_pub = rospy.Publisher(self.mask_pub_path, Image, queue_size=10)
+        self.seg_pub = rospy.Publisher("segmentation/segmentation", Image, queue_size=10)
 
         rgb_sub = message_filters.Subscriber(self.rgb_sub_path, Image)
         depth_sub = message_filters.Subscriber(self.depth_sub_path, Image)
@@ -58,7 +59,7 @@ class DepthFinderNode(object):
         rospy.loginfo_once("depth_finder: received sync'd messages")
         rgb_mat = ros_numpy.numpify(rgb_msg)
         depth_mat = ros_numpy.numpify(depth_msg)
-        x, y, z, stat, mask = self.depth_finder.detect_from_color(rgb_mat, None, use_depth=False)
+        x, y, z, stat, mask, segmentation = self.depth_finder.detect_from_color(rgb_mat, None, use_depth=False)
         if stat:
             pose_msg = PoseStamped()
             pose_msg.pose.position.x = x
@@ -70,14 +71,23 @@ class DepthFinderNode(object):
                     "base",
                     "camera_link",
                     rospy.Time(0),
-                    rospy.Duration(1.0),
+                    rospy.Duration(100.0),
                 )
 
             trans_pose_msg = tf2_geometry_msgs.do_transform_pose(pose_msg, self.pose_transform)
-            self.pose_pub.publish(trans_pose_msg)
+            trans_pos = trans_pose_msg.pose.position
+
+            if trans_pos.x > .25: 
+                self.pose_pub.publish(trans_pose_msg)
 
             mask_msg = ros_numpy.msgify(Image, mask, "rgb8")
+
             self.mask_pub.publish(mask_msg)
+
+
+            segmentation_msg = ros_numpy.msgify(Image, segmentation, "rgb8")
+
+            self.seg_pub.publish(segmentation_msg)
 
             rospy.loginfo_throttle(10, f"depth_finder: {(trans_pose_msg.pose.position.x, trans_pose_msg.pose.position.y, trans_pose_msg.pose.position.z)}")
 

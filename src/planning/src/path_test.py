@@ -14,6 +14,8 @@ from geometry_msgs.msg import PoseStamped, Pose
 from shape_msgs.msg import SolidPrimitive
 from visualization_msgs.msg import Marker, MarkerArray
 import std_msgs
+from intera_interface import gripper as robot_gripper
+
 
 from path_planner import PathPlanner
 
@@ -59,7 +61,12 @@ def main():
     # orien_const.weight = 1.0;
 
 
+    right_gripper = robot_gripper.Gripper('right_gripper')
 
+    # Calibrate the gripper (other commands won't work unless you do this first)
+    print('Calibrating...')
+    right_gripper.calibrate()
+    rospy.sleep(2.0)
 
 
     while not rospy.is_shutdown():
@@ -92,31 +99,42 @@ def main():
         #     else:
         #         break
 
-        # while not rospy.is_shutdown():
-        #     try:
-        #         goal_2 = PoseStamped()
-        #         goal_2.header.frame_id = "base"
+        FIXED_Z = 0.1
+        while not rospy.is_shutdown():
+            try:
+                goal_2 = PoseStamped()
+                goal_2.header.frame_id = "base"
 
-        #         #x, y, and z position
-        #         goal_2.pose.position.x = 0.8
-        #         goal_2.pose.position.y = 0.3
-        #         goal_2.pose.position.z = 0.0
+                #x, y, and z position
+                goal_2.pose.position.x = 0.6
+                goal_2.pose.position.y = -0.2
+                goal_2.pose.position.z = FIXED_Z
 
-        #         #Orientation as a quaternion
-        #         goal_2.pose.orientation.x = 0.0
-        #         goal_2.pose.orientation.y = -1.0
-        #         goal_2.pose.orientation.z = 0.0
-        #         goal_2.pose.orientation.w = 0.0
+                #Orientation as a quaternion
+                goal_2.pose.orientation.x = 0.0
+                goal_2.pose.orientation.y = -1.0
+                goal_2.pose.orientation.z = 0.0
+                goal_2.pose.orientation.w = 0.0
 
-        #         plan = planner.plan_to_pose(goal_2, [])
-        #         input("Press <Enter> to move the right arm to goal pose 2: ")
-        #         if not planner.execute_plan(plan[1]):
-        #             raise Exception("Execution failed")
-        #     except Exception as e:
-        #         print(e)
-        #     else:
-        #         break
+                joint_constraint = JointConstraint() 
+                joint_constraint.tolerance_above = 0.1 
+                joint_constraint.tolerance_below = 3.14 / 2
+                joint_constraint.weight = 1
+                joint_constraint.joint_name = "torso_t0"
 
+                plan = planner.plan_to_pose(goal_2, [], [], [joint_constraint])
+                input("Press <Enter> to move the right arm to goal pose 2: ")
+                if not planner.execute_plan(plan[1]):
+                    raise Exception("Execution failed")
+            except Exception as e:
+                print(e)
+            else:
+                break
+
+        print('Closing...')
+        right_gripper.close()
+        rospy.sleep(1.0)
+ 
         while not rospy.is_shutdown():
             try:
             # if True:
@@ -129,7 +147,7 @@ def main():
                 #x, y, and z position
                 goal_3.pose.position.x = 0.8 # prev 0.6
                 goal_3.pose.position.y = -0.2 #-0.2
-                goal_3.pose.position.z = 0.0
+                goal_3.pose.position.z = FIXED_Z
                 # goal_3.pose.position.x = current_pose.pose.position.x
                 # goal_3.pose.position.y = current_pose.pose.position.y
                 # goal_3.pose.position.z = current_pose.pose.position.z
@@ -149,7 +167,7 @@ def main():
                 cbox = SolidPrimitive()
                 cbox.type = SolidPrimitive.BOX
                 # cbox.dimensions = [1,1,1]
-                cbox.dimensions = [1.2, 1.2, 0.1]
+                cbox.dimensions = [1.0, 1.0, 0.1]
                 # cbox.dimensions = [1.5,1.5,1.5]
                 # cbox.dimensions = [0.01, 0.01, 0.01]
                 # cbox.dimensions = [0.6, 0.4, 0.6] # TODO: possibly change
@@ -157,8 +175,8 @@ def main():
                 
                 cbox_pose = Pose()
                 cbox_pose.position.x = 0.8
-                cbox_pose.position.y = 0.3
-                cbox_pose.position.z = 0.0
+                cbox_pose.position.y = -0.2
+                cbox_pose.position.z = FIXED_Z
                 # cbox_pose.position.y = 0 
                 # cbox_pose.position.z = 0
                 cbox_pose.orientation.w = 1.0
@@ -200,6 +218,11 @@ def main():
                 input("Press <Enter> to move the right arm to goal pose 3: ")
                 if not planner.execute_plan(plan[1]):
                     raise Exception("Execution failed")
+
+                # Open the right gripper
+                print('Opening...')
+                right_gripper.open()
+                rospy.sleep(1.0)
             except Exception as e:
                 print(e)
             else:

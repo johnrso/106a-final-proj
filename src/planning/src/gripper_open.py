@@ -13,7 +13,7 @@ print('Calibrating...')
 right_gripper.calibrate()
 rospy.sleep(2.0)
 
-# Close the right gripper
-print('Closing...')
+# Open the right gripper
+print('Opening...')
 right_gripper.open()
 rospy.sleep(1.0)

@@ -46,7 +46,7 @@ class PathPlannerNode(object):
         self.a_xy = 0
         self.a_z = -9.8
         self.z_fixed = 0.1
-        self.y_fixed = -0.4
+        self.y_fixed = -0.6
         self.x_thresh = 3.0
 
         self.planning_group = rospy.get_param("~planning_group", "right_arm")
@@ -62,7 +62,7 @@ class PathPlannerNode(object):
         # plotting topic
         self.traj_plot = rospy.Publisher("~traj_plot", PoseArray, queue_size=1)
         self.data_plot = rospy.Publisher("~data_plot", PoseArray, queue_size=1)
-        self.num_plot_samples = 1000
+        self.num_plot_samples = 10
 
         self.right_gripper = robot_gripper.Gripper('right_gripper')
         self.right_gripper.calibrate()
@@ -84,21 +84,21 @@ class PathPlannerNode(object):
 
             joint_constraint = JointConstraint() 
             joint_constraint.tolerance_above = 0.1 
-            joint_constraint.tolerance_below = 3.14 / 2
+            joint_constraint.tolerance_below = 3.14 / 4
             joint_constraint.weight = 1
             joint_constraint.joint_name = "torso_t0"
 
             plan = self.planner.plan_to_pose(init_goal, [], [], [joint_constraint])
-            input()
+            # input()
             if not self.planner.execute_plan(plan[1]):
                 raise Exception("Execution failed")
         except Exception as e:
             print(e)            
 
-        
-        rospy.sleep(5.0)
+        self.right_gripper.open()
+        rospy.sleep(2.5)
         self.right_gripper.close()
-        rospy.sleep(5.0)
+        rospy.sleep(1.0)
             
         thread = threading.Thread(target=self.plan, args=())
         thread.daemon = True  # Daemonize thread
@@ -113,7 +113,7 @@ class PathPlannerNode(object):
         # extract position from msg and append it to buffer
         pos = msg.pose.position
         self.buffer.append([pos.x, pos.y, pos.z])
-        if len(self.buffer) > 5:
+        if len(self.buffer) > 25:
             self.buffer.pop(0)
         # plot buffer points
         sample_array = PoseArray()
@@ -140,15 +140,16 @@ class PathPlannerNode(object):
             # if detect_bounce(self.buffer):
             #     self.buffer = self.buffer[-1:]
             #print(self.buffer)
-            if len(self.buffer) < 2:
-                rospy.sleep(self.dt)
+            if len(self.buffer) < 25:
+                # rospy.sleep(self.dt)
                 continue
             rospy.loginfo_once("path_planner: begin fitting")
-            buf_np = np.array(self.buffer)
+            buf_np = np.array(self.buffer[-10:])
             n, _ = buf_np.shape
 
             rospy.loginfo_throttle(1, f"path_planner: num messages --> {n}")
 
+            s1 = time.time()
             # fit a parabola to the buffer
 
             t = np.linspace(0, n*self.dt, n)
@@ -173,10 +174,12 @@ class PathPlannerNode(object):
                 sample.orientation.w = 1
                 sample_array.poses.append(sample)
             self.traj_plot.publish(sample_array)
-            
 
+            e1 = time.time()
+            rospy.loginfo(f"total for curve fitting: {e1-s1}")
             rospy.loginfo_once("path_planner: curve fit, beginning to plan")
 
+            s2 = time.time()
             target_goal = PoseStamped()
             target_goal.header.frame_id = "base"
 
@@ -231,16 +234,21 @@ class PathPlannerNode(object):
             marker_array_msg.markers.append(goal_marker)
             self.constraint_pub.publish(marker_array_msg)
 
-            plan = self.planner.plan_to_pose(target_goal, [], [pcm], [joint_constraint])
-            # input("Press <Enter> to move the right arm to goal pose 3: ")
-            if not self.planner.execute_plan(plan[1]):
-                raise Exception("Execution failed")
+            try:
+                e2 = time.time()
+                rospy.loginfo(f"setting constraints: {e2-s2}")
+                plan = self.planner.plan_to_pose(target_goal, [], [pcm], [joint_constraint])
+                e3 = time.time()
+                rospy.loginfo(f"planning: {e3-e2}")
+                if not self.planner.execute_plan(plan[1]):
+                    raise Exception("Execution failed")
+            except Exception as e:
+                print(e)          
 
-            self.buffer = []
-            # Open the right gripper
-            print('Opening...')
             self.right_gripper.open()
-            rospy.sleep(1.0)
+            self.buffer = []
+            
+            # rospy.signal_shutdown("done")
 
 
 def display_box(pose, dimensions, ref_link):

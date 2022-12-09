@@ -19,11 +19,9 @@ def fit_pos(t, pos_samples):
     """
     x_samples = pos_samples[:, 0]
     y_samples = pos_samples[:, 1]
-    z_samples = pos_samples[:, 2]
     paramx, covx = curve_fit(fit, t, x_samples)
     paramy, covy = curve_fit(fit, t, y_samples)
-    paramz, covz = curve_fit(fit, t, z_samples)
-    return [paramx, paramy, paramz]
+    return [paramx, paramy]
 
 def detect_bounce(pos_samples):
     if len(pos_samples) >= 3:
@@ -31,17 +29,18 @@ def detect_bounce(pos_samples):
         return (one[2]-two[2]) > 0 and three[2] > two[2]
     return False
 
-def xy_intercept(v, z_int):
-    a, b = v[2]
+def xy_intercept(v, x_thresh):
+    """ Returns x and y intercept for robot"""
+    a, b = v[0]
+    b -= x_thresh
     t_int = np.roots([a, b])
     return fit(t_int[0], *v[0]), fit(t_int[0], *v[1])
 
-def sample_from_traj(v):
+def sample_from_traj(v, z_fixed):
     t = np.random.uniform()*5
     x = fit(t, *v[0])
     y = fit(t, *v[1])
-    z = fit(t, *v[2])
-    return [x, y, z]
+    return [x, y, z_fixed]
 
 # if __name__ == "__main__":
 #     # getting intercepts

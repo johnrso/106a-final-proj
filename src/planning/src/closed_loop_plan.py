@@ -35,7 +35,8 @@ class PathPlannerNode(object):
         self.buffer = []
         self.a_xy = 0
         self.a_z = -9.8
-        self.z_int = 0
+        self.z_fixed = 0.0
+        self.x_thresh = 3.0
 
         self.planning_group = rospy.get_param("~planning_group", "right_arm")
         self.dt = rospy.get_param("~dt", 1/30)
@@ -47,7 +48,8 @@ class PathPlannerNode(object):
         self.pose_sub = rospy.Subscriber(sub_paths["pose"], PoseStamped, self.add_to_buffer)
 
         # plotting topic
-        self.plot = rospy.Publisher("~traj_plot", PoseArray, 1)
+        self.traj_plot = rospy.Publisher("~traj_plot", PoseArray, 1)
+        self.data_plot = rospy.Publisher("~data_plot", PoseArray, 1)
         self.num_plot_samples = 1000
 
         thread = threading.Thread(target=self.plan, args=())
@@ -63,7 +65,7 @@ class PathPlannerNode(object):
         # extract position from msg and append it to buffer
         pos = msg.pose.position
         self.buffer.append([pos.x, pos.y, pos.z])
-        if len(self.buffer) > 10:
+        if len(self.buffer) > 50:
             self.buffer.pop(0)
         # TODO: check which frame this is in
 
@@ -74,7 +76,7 @@ class PathPlannerNode(object):
             # if detect_bounce(self.buffer):
             #     self.buffer = self.buffer[-1:]
             #print(self.buffer)
-            if len(self.buffer) < 5:
+            if len(self.buffer) < 1:
                 rospy.sleep(self.dt)
                 continue
             rospy.loginfo_once("path_planner: begin fitting")
@@ -89,7 +91,7 @@ class PathPlannerNode(object):
             v_fit = fit_pos(t, buf_np)
 
             # intercepts
-            x, y = xy_intercept(v_fit, self.z_int)
+            x, y = xy_intercept(v_fit, self.x_thresh)
 
             # sample 10 posestamped from estimated traj, publish to rviz plot topic
             sample_array = PoseArray()
@@ -97,15 +99,17 @@ class PathPlannerNode(object):
             sample_array.header.stamp = rospy.Time.now()
             for i in range(self.num_plot_samples):
                 sample = Pose()
-                x_sample, y_sample, z_sample = sample_from_traj(v_fit)
+                x_sample, y_sample, z_sample = sample_from_traj(v_fit, self.z_fixed)
                 sample.position.x = x_sample
                 sample.position.y = y_sample
-                sample.position.z = z_sample
+                sample.position.z = z_sample + buf_np[0, 2]
                 sample.orientation.x = 0
                 sample.orientation.y = 0
                 sample.orientation.z = 0
                 sample.orientation.w = 1
                 sample_array.poses.append(sample)
+            self.traj_plot.publish(sample_array)
+            # plot buffer points
             for b in buf_np:
                 sample = Pose()
                 sample.position.x = b[0]
@@ -117,8 +121,6 @@ class PathPlannerNode(object):
                 sample.orientation.w = 1
 
                 sample_array.poses.append(sample)
-
-            self.plot.publish(sample_array)
 
             rospy.loginfo_once("path_planner: curve fit, beginning to plan")
             # # current_pose = self.planner._group.get_current_pose()

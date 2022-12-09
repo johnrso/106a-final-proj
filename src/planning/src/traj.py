@@ -31,7 +31,7 @@ def detect_bounce(pos_samples):
 
 def xy_intercept(v, x_thresh):
     """ Returns x and y intercept for robot"""
-    a, b = v[0]
+    a, b = v[1]
     b -= x_thresh
     t_int = np.roots([a, b])
     return fit(t_int[0], *v[0]), fit(t_int[0], *v[1])

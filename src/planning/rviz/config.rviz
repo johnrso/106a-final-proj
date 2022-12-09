@@ -11,6 +11,7 @@ Panels:
         - /TF1/Frames1
         - /PoseArray1
         - /Image3
+        - /PoseArray2
       Splitter Ratio: 0.7425600290298462
     Tree Height: 271
   - Class: rviz/Help
@@ -155,6 +156,7 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+            Value: true
           right_hand:
             Alpha: 1
             Show Axes: false
@@ -357,6 +359,7 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+            Value: true
           right_hand:
             Alpha: 1
             Show Axes: false
@@ -597,6 +600,31 @@ Visualization Manager:
       Transport Hint: raw
       Unreliable: false
       Value: true
+    - Alpha: 1
+      Arrow Length: 0.30000001192092896
+      Axes Length: 0.30000001192092896
+      Axes Radius: 0.009999999776482582
+      Class: rviz/PoseArray
+      Color: 0; 255; 42
+      Enabled: true
+      Head Length: 0.009999999776482582
+      Head Radius: 0
+      Name: PoseArray
+      Queue Size: 10
+      Shaft Length: 0.009999999776482582
+      Shaft Radius: 0.009999999776482582
+      Shape: Arrow (3D)
+      Topic: /closed_loop_plan/data_plot
+      Unreliable: false
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /planning/constraints
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -613,7 +641,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 9.306674003601074
+      Distance: 2.74619197845459
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -621,17 +649,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.11356700211763382
-        Y: 0.10592000186443329
+        X: 0.507506251335144
+        Y: 0.5602453351020813
         Z: 2.2351800055275817e-07
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.009795958176255226
+      Pitch: 0.7947953939437866
       Target Frame: base
-      Yaw: 6.239953517913818
+      Yaw: 0.7917736768722534
     Saved: ~
 Window Geometry:
   Displays:
@@ -651,5 +679,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1828
-  X: 84
+  X: 80
   Y: 28

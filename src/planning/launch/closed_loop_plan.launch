@@ -2,5 +2,6 @@
   <node pkg="planning" type="closed_loop_plan.py" name="closed_loop_plan" output="screen" respawn="false">
     <rosparam file="$(find planning)/config/closed_loop_plan.yaml" subst_value="true"/>
     <remap from="~pose" to="/planning/pose"/>
+    <remap from="~constraints" to="/planning/constraints"/>
   </node>
 </launch>

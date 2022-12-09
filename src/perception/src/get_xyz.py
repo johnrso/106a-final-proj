@@ -109,7 +109,6 @@ class DepthFinder:
                 # degrees_per_pixel_x = FOV_X / IMG_W
                 # sin_theta = np.sin(np.deg2rad(pixel_radius * degrees_per_pixel_x))
                 # print(pixel_radius * degrees_per_pixel_x)
-                print(pixel_radius)
                 Z = self.fx * self.ball_diam_meters / (pixel_radius * 2)# (BALL_DIAM_METERS / 2) / sin_theta
                 circle_mask = np.zeros(img.shape[:2])
                 circle_mask = cv2.circle(circle_mask, (int(pix_x), int(pix_y)), int(pixel_radius), 1, -1)

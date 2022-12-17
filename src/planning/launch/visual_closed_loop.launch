@@ -2,6 +2,7 @@
   <arg name="x" default="1.16"/>
   <arg name="y" default="0"/>
   <arg name="z" default="0"/>
+  <node name="sawyer_tuck" pkg="intera_examples" type="go_to_joint_angles.py" respawn="false" output="screen" args="-q -0.685685546875 -0.8380625 -0.5252666015625 1.8298427734375 0.5380849609375 0.7128544921875 0.23368359375" />
   <include file="$(find planning)/launch/closed_loop_plan.launch"/>
   <include file="$(find perception)/launch/segmentation.launch"/>
   <include file="$(find perception)/launch/ar_track.launch"/>

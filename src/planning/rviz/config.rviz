@@ -7,7 +7,6 @@ Panels:
         - /MotionPlanning1
         - /Image1
         - /Image2
-        - /TF1
         - /TF1/Frames1
         - /PoseArray1
         - /Image3
@@ -467,92 +466,10 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        ar_marker_17:
-          Value: true
-        base:
-          Value: true
-        camera_color_frame:
-          Value: false
-        camera_color_optical_frame:
-          Value: false
-        camera_depth_frame:
-          Value: false
-        camera_depth_optical_frame:
-          Value: false
-        camera_link:
-          Value: true
-        reference/base:
-          Value: false
-        reference/controller_box:
-          Value: false
-        reference/head:
-          Value: false
-        reference/head_camera:
-          Value: false
-        reference/pedestal:
-          Value: false
-        reference/pedestal_feet:
-          Value: false
-        reference/right_arm_base_link:
-          Value: false
-        reference/right_arm_itb:
-          Value: false
-        reference/right_connector_plate_base:
-          Value: false
-        reference/right_connector_plate_mount:
-          Value: false
-        reference/right_electric_gripper_base:
-          Value: false
-        reference/right_gripper_base:
-          Value: false
-        reference/right_gripper_l_finger:
-          Value: false
-        reference/right_gripper_l_finger_tip:
-          Value: false
-        reference/right_gripper_r_finger:
-          Value: false
-        reference/right_gripper_r_finger_tip:
-          Value: false
-        reference/right_gripper_tip:
-          Value: false
-        reference/right_hand:
-          Value: false
-        reference/right_hand_camera:
-          Value: false
-        reference/right_l0:
-          Value: false
-        reference/right_l1:
-          Value: false
-        reference/right_l1_2:
-          Value: false
-        reference/right_l2:
-          Value: false
-        reference/right_l2_2:
-          Value: false
-        reference/right_l3:
-          Value: false
-        reference/right_l4:
-          Value: false
-        reference/right_l4_2:
-          Value: false
-        reference/right_l5:
-          Value: false
-        reference/right_l6:
-          Value: false
-        reference/right_torso_itb:
-          Value: false
-        reference/right_wrist:
-          Value: false
-        reference/screen:
-          Value: false
-        reference/torso:
-          Value: false
-        world:
-          Value: false
       Marker Alpha: 1
       Marker Scale: 1
       Name: TF
@@ -560,17 +477,9 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        camera_link:
-          camera_color_frame:
-            camera_color_optical_frame:
-              ar_marker_17:
-                base:
-                  {}
-          camera_depth_frame:
-            camera_depth_optical_frame:
-              {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Alpha: 1
       Arrow Length: 0.30000001192092896
       Axes Length: 0.30000001192092896
@@ -622,7 +531,8 @@ Visualization Manager:
       Marker Topic: /planning/constraints
       Name: MarkerArray
       Namespaces:
-        {}
+        goal: true
+        positionconstraint: true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -641,7 +551,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 2.74619197845459
+      Distance: 2.6676712036132812
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -649,17 +559,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.507506251335144
-        Y: 0.5602453351020813
+        X: 1.1244611740112305
+        Y: -0.04350101947784424
         Z: 2.2351800055275817e-07
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7947953939437866
+      Pitch: 1.209796667098999
       Target Frame: base
-      Yaw: 0.7917736768722534
+      Yaw: 6.253133296966553
     Saved: ~
 Window Geometry:
   Displays:
@@ -679,5 +589,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1828
-  X: 80
+  X: 77
   Y: 28

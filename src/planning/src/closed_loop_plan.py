@@ -46,8 +46,10 @@ class PathPlannerNode(object):
         self.a_xy = 0
         self.a_z = -9.8
         self.z_fixed = 0.1
-        self.y_fixed = -0.6
+        self.y_fixed = -0.2
         self.x_thresh = 3.0
+        self.init_x = 0.4
+        self.received = 0
 
         self.planning_group = rospy.get_param("~planning_group", "right_arm")
         self.dt = rospy.get_param("~dt", 1/30)
@@ -62,44 +64,58 @@ class PathPlannerNode(object):
         # plotting topic
         self.traj_plot = rospy.Publisher("~traj_plot", PoseArray, queue_size=1)
         self.data_plot = rospy.Publisher("~data_plot", PoseArray, queue_size=1)
-        self.num_plot_samples = 10
+        self.num_plot_samples = 100
 
         self.right_gripper = robot_gripper.Gripper('right_gripper')
         self.right_gripper.calibrate()
 
-        try:
-            init_goal = PoseStamped()
-            init_goal.header.frame_id = "base"
+        # try:
+        #     init_goal = PoseStamped()
+        #     init_goal.header.frame_id = "base"
 
-            #x, y, and z position
-            init_goal.pose.position.x = 0.6
-            init_goal.pose.position.y = self.y_fixed
-            init_goal.pose.position.z = self.z_fixed
+        #     #x, y, and z position
+        #     init_goal.pose.position.x = self.init_x
+        #     init_goal.pose.position.y = self.y_fixed
+        #     init_goal.pose.position.z = self.z_fixed
 
-            #Orientation as a quaternion
-            init_goal.pose.orientation.x = 0.0
-            init_goal.pose.orientation.y = -1.0
-            init_goal.pose.orientation.z = 0.0
-            init_goal.pose.orientation.w = 0.0
+        #     #Orientation as a quaternion
+        #     init_goal.pose.orientation.x = 0.0
+        #     init_goal.pose.orientation.y = -1.0
+        #     init_goal.pose.orientation.z = 0.0
+        #     init_goal.pose.orientation.w = 0.0
 
-            joint_constraint = JointConstraint() 
-            joint_constraint.tolerance_above = 0.1 
-            joint_constraint.tolerance_below = 3.14 / 4
-            joint_constraint.weight = 1
-            joint_constraint.joint_name = "torso_t0"
+        #     joint_constraint = JointConstraint()
+        #     joint_constraint.tolerance_above = 0.1
+        #     joint_constraint.tolerance_below = 3.14 / 4
+        #     joint_constraint.weight = 1
+        #     joint_constraint.joint_name = "torso_t0"
 
-            plan = self.planner.plan_to_pose(init_goal, [], [], [joint_constraint])
-            # input()
-            if not self.planner.execute_plan(plan[1]):
-                raise Exception("Execution failed")
-        except Exception as e:
-            print(e)            
+        #     plan = self.planner.plan_to_pose(init_goal, [], [], [joint_constraint])
+        #     # input()
+        #     if not self.planner.execute_plan(plan[1]):
+        #         raise Exception("Execution failed")
+        # except Exception as e:
+        #     print(e)
+
+        # input('test')
+        # import intera_interface
+        # from intera_interface import CHECK_VERSION
+        # rs = intera_interface.RobotEnable(CHECK_VERSION)
+        # init_state = rs.state().enabled
+        # rs.enable()
+
+        # limb = Limb("right")
+        # start_joints = [-0.685685546875, -0.8380625, -0.5252666015625, 1.8298427734375, 0.5380849609375, 0.7128544921875, 0.23368359375]
+        # joint_command = self.make_joint_command(start_joints)
+        # limb.set_joint_position_speed(0.3)
+        # print(joint_command)
+        # limb.set_joint_positions(joint_command)
 
         self.right_gripper.open()
         rospy.sleep(2.5)
         self.right_gripper.close()
         rospy.sleep(1.0)
-            
+
         thread = threading.Thread(target=self.plan, args=())
         thread.daemon = True  # Daemonize thread
         thread.start()
@@ -107,31 +123,43 @@ class PathPlannerNode(object):
         rospy.loginfo("path_planner: initialized")
         rospy.spin()
 
+    def make_joint_command(self, joint_lst):
+        names = ["right_j0", "right_j1", "right_j2", "right_j3", "right_j4", "right_j5", "right_j6"]
+        cmd = dict()
+        for i in range(len(names)):
+            # limb = Limb("right")
+            # current_position = limb.joint_angle(names[i])
+            # print(f"tracking curr pos: {names[i]} {current_position}")
+            cmd[names[i]] = joint_lst[i]
+
+        return cmd
+
     def add_to_buffer(self, msg):
-        rospy.loginfo_once("path_planner: received first pos message")
+        if self.received > 5:
+            pos = msg.pose.position
+            self.buffer.append([pos.x, pos.y, pos.z])
+            rospy.loginfo_once("path_planner: received first pos message")
 
-        # extract position from msg and append it to buffer
-        pos = msg.pose.position
-        self.buffer.append([pos.x, pos.y, pos.z])
-        if len(self.buffer) > 25:
-            self.buffer.pop(0)
-        # plot buffer points
-        sample_array = PoseArray()
-        sample_array.header.frame_id = "base"
-        sample_array.header.stamp = rospy.Time.now()
-        for b in self.buffer:
-            sample = Pose()
-            sample.position.x = b[0]
-            sample.position.y = b[1]
-            sample.position.z = b[2]
-            sample.orientation.x = 0
-            sample.orientation.y = 0
-            sample.orientation.z = 0
-            sample.orientation.w = 1
+            # extract position from msg and append it to buffer
 
-            sample_array.poses.append(sample)
-        self.data_plot.publish(sample_array)
-        # TODO: check which frame this is in
+            # plot buffer points
+            sample_array = PoseArray()
+            sample_array.header.frame_id = "base"
+            sample_array.header.stamp = rospy.Time.now()
+            for b in self.buffer:
+                sample = Pose()
+                sample.position.x = b[0]
+                sample.position.y = b[1]
+                sample.position.z = b[2]
+                sample.orientation.x = 0
+                sample.orientation.y = 0
+                sample.orientation.z = 0
+                sample.orientation.w = 1
+
+                sample_array.poses.append(sample)
+            self.data_plot.publish(sample_array)
+            # TODO: check which frame this is in
+        self.received += 1
 
     def plan(self):
         rospy.loginfo_once("path_planner: beginning planning server")
@@ -140,7 +168,7 @@ class PathPlannerNode(object):
             # if detect_bounce(self.buffer):
             #     self.buffer = self.buffer[-1:]
             #print(self.buffer)
-            if len(self.buffer) < 25:
+            if len(self.buffer) < 20:
                 # rospy.sleep(self.dt)
                 continue
             rospy.loginfo_once("path_planner: begin fitting")
@@ -196,6 +224,7 @@ class PathPlannerNode(object):
 
 
             pcm = PositionConstraint()
+            # pcm.header.frame_id = "base"
             pcm.header.frame_id = self.planner.ref_link
             pcm.link_name = self.planner.ee_link
 
@@ -203,29 +232,29 @@ class PathPlannerNode(object):
             cbox.type = SolidPrimitive.BOX
             cbox.dimensions = [1.0, 1.0, 0.1]
             pcm.constraint_region.primitives.append(cbox)
-            
+
             cbox_pose = Pose()
-            cbox_pose.position.x = x
+            cbox_pose.position.x = self.init_x
             cbox_pose.position.y = self.y_fixed
             cbox_pose.position.z = self.z_fixed
             cbox_pose.orientation.w = 1.0
             pcm.constraint_region.primitive_poses.append(cbox_pose)
 
-            joint_constraint = JointConstraint() 
-            joint_constraint.tolerance_above = 0.1 
-            joint_constraint.tolerance_below = 3.14 / 2
+            joint_constraint = JointConstraint()
+            joint_constraint.tolerance_above = 0.1
+            joint_constraint.tolerance_below = 3.14 * 3 / 4
             joint_constraint.weight = 1
             joint_constraint.joint_name = "torso_t0"
 
             orientation_constraint = OrientationConstraint()
-            orientation_constraint.link_name = self.planner.ee_link 
+            orientation_constraint.link_name = self.planner.ee_link
             orientation_constraint.orientation.x = 0.0
             orientation_constraint.orientation.y = -1.0
             orientation_constraint.orientation.z = 0.0
             orientation_constraint.orientation.w = 0.0
-            orientation_constraint.absolute_x_axis_tolerance = 10 
-            orientation_constraint.absolute_x_axis_tolerance = 10
-            orientation_constraint.absolute_x_axis_tolerance = 10
+            orientation_constraint.absolute_x_axis_tolerance = 0.5
+            orientation_constraint.absolute_y_axis_tolerance = 3.6
+            orientation_constraint.absolute_z_axis_tolerance = 0.5
 
             marker_array_msg = MarkerArray()
             position_constraint_marker = display_box(cbox_pose, cbox.dimensions, pcm.header.frame_id)
@@ -243,11 +272,18 @@ class PathPlannerNode(object):
                 if not self.planner.execute_plan(plan[1]):
                     raise Exception("Execution failed")
             except Exception as e:
-                print(e)          
+                print(e)
 
             self.right_gripper.open()
+            input()
             self.buffer = []
-            
+            self.received = 0
+
+
+            self.right_gripper.close()
+            rospy.sleep(1.0)
+
+
             # rospy.signal_shutdown("done")
 
 
